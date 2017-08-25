@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">Cliquick</string>
+
+    <string-array name="numbers">
+        <item>1 second</item>
+        <item>2 seconds</item>
+        <item>3 seconds</item>
+    </string-array>
+
+    <string-array name="digits">
+        <item>zero</item>
+        <item>one</item>
+        <item>two</item>
+        <item>four</item>
+        <item>five</item>
+        <item>five</item>
+        <item>six</item>
+        <item>seven</item>
+        <item>eight</item>
+        <item>night</item>
+
+    </string-array>
+    <string name="title_activity_contact_picker">ContactPickerActivity</string>
+
+    <string name="kws_caption">To start demonstration say \"help me\".</string>
+    <string name="menu_caption">Say \"digits\", \"forecast\" or \"phones\" to choose the grammar, language model or phonetic decoder example.</string>
+    <string name="digits_caption">To try recognition of digits: say something like \"one two three four five\".</string>
+    <string name="forecast_caption">To try recognition of a weather forecast like \"sunny spells on Wednesday\".</string>
+    <string name="phone_caption">To try phonetic recognition say anything.</string>
+
+</resources>

@@ -1,0 +1,7 @@
+#JSGF V1.0;
+
+grammar menu;
+
+<command> = (yell | hell | bell | nail | sell | help | gulp | dwell | well | rail | pulp | rolf | wolf) (me | he | see | she | my | fee | e);
+
+public <item> = <command>+;
