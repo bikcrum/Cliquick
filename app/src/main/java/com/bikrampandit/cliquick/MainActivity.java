@@ -56,6 +56,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     private TagContainerLayout mTagContainerLayoutCall;
 
     private TextToSpeech tts;
+    private SharedPreferences preferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,6 +76,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
         mTagContainerLayoutTextMessage = (TagContainerLayout) findViewById(R.id.tag_container_add_contact_for_text_msg);
         mTagContainerLayoutCall = (TagContainerLayout) findViewById(R.id.tag_container_add_contact_for_call);
+
+        mTagContainerLayoutTextMessage.addTag("No contacts");
+        mTagContainerLayoutCall.addTag("No contacts");
 
         mTagContainerLayoutCall.setOnTagClickListener(new TagView.OnTagClickListener() {
             @Override
@@ -113,8 +117,24 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     }
 
     private void setupUI() {
+        preferences = getSharedPreferences(Constant.PREFERENCE_NAME,MODE_PRIVATE);
+
         findViewById(R.id.speak_btn).setEnabled(false);
         tts = new TextToSpeech(this, this);
+
+        findViewById(R.id.add_contact_for_text_msg).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addContactForTxtMsg(view);
+            }
+        });
+
+        findViewById(R.id.add_contact_for_call).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addContactForCall(view);
+            }
+        });
 
         ((Switch) findViewById(R.id.vol_up_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
@@ -234,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             if (resultCode == Activity.RESULT_OK) {
 
                 Uri result = data.getData();
-                Log.v("biky", "Got a result: " + result.toString());
+                Log.i("biky", "Got a result: " + result.toString());
 
 // get the phone number id from the Uri
                 String id = result.getLastPathSegment();

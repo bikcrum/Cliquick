@@ -32,6 +32,7 @@
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
                     android:orientation="horizontal">
 
                     <com.rey.material.widget.Switch
@@ -53,30 +54,35 @@
                         android:layout_toLeftOf="@id/vol_up_switch"
                         android:layout_toStartOf="@id/vol_up_switch"
                         android:text="If volume up button"
-                        android:textSize="18sp" />
+
+                        android:textSize="19sp" />
                 </RelativeLayout>
 
 
-                <LinearLayout
+                <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:layout_height="wrap_content">
 
                     <TextView
                         android:id="@+id/vol_up_text1"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0.5"
-                        android:text="is pressed for" />
+                        android:layout_centerVertical="true"
+                        android:text="is pressed for"
+                        android:textSize="16sp" />
 
                     <Spinner
                         android:id="@+id/time_spinner"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0.5"
+                        android:layout_centerVertical="true"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginStart="5dp"
+                        android:layout_toEndOf="@id/vol_up_text1"
+                        android:layout_toRightOf="@id/vol_up_text1"
                         android:entries="@array/numbers" />
 
-                </LinearLayout>
+                </RelativeLayout>
 
                 <View
                     android:layout_width="match_parent"
@@ -88,8 +94,8 @@
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingBottom="8dp">
+                    android:layout_marginBottom="8dp"
+                    android:orientation="horizontal">
 
                     <com.rey.material.widget.Switch
                         android:id="@+id/voice_code_switch"
@@ -109,12 +115,10 @@
                         android:layout_alignParentStart="false"
                         android:layout_toLeftOf="@id/voice_code_switch"
                         android:layout_toStartOf="@id/voice_code_switch"
-                        android:text="If following voice code is spoken"
-                        android:textSize="18sp" />
+                        android:text="If following code is spoken"
+                        android:textSize="19sp" />
 
                 </RelativeLayout>
-
-
 
                 <RelativeLayout
                     android:layout_width="match_parent"
@@ -131,7 +135,7 @@
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:contentDescription="speaker"
                         android:onClick="speakCode"
-                        android:src="@drawable/ic_speaker" />
+                        android:src="@drawable/ic_play" />
 
 
                     <LinearLayout
@@ -172,7 +176,6 @@
                             android:id="@+id/voice_code4"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-
                             android:layout_gravity="center_vertical"
                             android:layout_margin="3dp"
                             android:background="@drawable/gradient_spinner"
@@ -207,7 +210,7 @@
                     android:layout_height="match_parent"
                     android:layout_marginBottom="10dp"
                     android:text="Then do the following"
-                    android:textSize="18sp" />
+                    android:textSize="19sp" />
 
 
                 <RelativeLayout
@@ -232,17 +235,18 @@
                         android:layout_alignParentLeft="true"
                         android:layout_alignParentStart="true"
                         android:layout_alignParentTop="true"
-                        android:text="Send panic text message\nto the following contacts" />
+                        android:text="Send panic text message\nto the following contacts"
+                        android:textSize="16sp" />
 
                 </RelativeLayout>
 
                 <android.support.v7.widget.AppCompatButton
+                    android:id="@+id/add_contact_for_text_msg"
                     style="?attr/buttonBarButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:onClick="addContactForTxtMsg"
-                    android:textSize="12sp"
-                    android:text="ADD CONTACT"/>
+                    android:text="ADD CONTACT"
+                    android:textSize="14sp" />
 
                 <co.lujun.androidtagview.TagContainerLayout
                     android:id="@+id/tag_container_add_contact_for_text_msg"
@@ -253,7 +257,7 @@
                     app:container_enable_drag="false"
                     app:horizontal_interval="10dp"
                     app:tag_clickable="true"
-                    app:tag_enable_cross="true"
+
                     app:tag_max_length="50"
                     app:tag_theme="pure_teal"
                     app:vertical_interval="10dp" />
@@ -291,17 +295,18 @@
                         android:layout_centerVertical="true"
                         android:layout_toLeftOf="@id/call_switch"
                         android:layout_toStartOf="@id/call_switch"
-                        android:text="Make a call\nto the following contacts" />
+                        android:text="Make a call\nto the following contacts"
+                        android:textSize="16sp" />
 
                 </RelativeLayout>
 
                 <android.support.v7.widget.AppCompatButton
+                    android:id="@+id/add_contact_for_call"
                     style="?attr/buttonBarButtonStyle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:onClick="addContactForCall"
-                    android:textSize="12sp"
-                    android:text="ADD CONTACT"/>
+                    android:text="ADD CONTACT"
+                    android:textSize="14sp" />
 
                 <co.lujun.androidtagview.TagContainerLayout
                     android:id="@+id/tag_container_add_contact_for_call"
@@ -312,7 +317,7 @@
                     app:container_enable_drag="false"
                     app:horizontal_interval="10dp"
                     app:tag_clickable="true"
-                    app:tag_enable_cross="true"
+
                     app:tag_max_length="50"
                     app:tag_theme="pure_teal"
                     app:vertical_interval="10dp" />
@@ -338,6 +343,7 @@
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
                     android:orientation="horizontal">
 
                     <com.rey.material.widget.Switch
@@ -359,11 +365,11 @@
                         android:layout_toLeftOf="@id/vol_down_switch"
                         android:layout_toStartOf="@id/vol_down_switch"
                         android:text="If volume down button"
-                        android:textSize="18sp" />
+                        android:textSize="19sp" />
                 </RelativeLayout>
 
 
-                <LinearLayout
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
@@ -372,17 +378,22 @@
                         android:id="@+id/vol_down_text1"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0.5"
-                        android:text="is pressed for" />
+                        android:layout_centerVertical="true"
+                        android:text="is pressed for"
+                        android:textSize="16sp" />
 
                     <Spinner
                         android:id="@+id/time2_spinner"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="0.5"
+                        android:layout_centerVertical="true"
+                        android:layout_marginLeft="5dp"
+                        android:layout_marginStart="5dp"
+                        android:layout_toEndOf="@id/vol_down_text1"
+                        android:layout_toRightOf="@id/vol_down_text1"
                         android:entries="@array/numbers" />
 
-                </LinearLayout>
+                </RelativeLayout>
 
 
             </LinearLayout>
@@ -393,6 +404,7 @@
             android:layout_height="wrap_content"
             app:cardCornerRadius="5dp"
             app:cardElevation="3dp"
+            android:layout_marginBottom="10dp"
             app:cardUseCompatPadding="true">
 
             <LinearLayout
@@ -406,7 +418,7 @@
                     android:layout_height="match_parent"
                     android:layout_marginBottom="10dp"
                     android:text="Then do the following"
-                    android:textSize="18sp" />
+                    android:textSize="19sp" />
 
                 <RelativeLayout
                     android:layout_width="match_parent"
@@ -430,7 +442,8 @@
                         android:layout_centerVertical="true"
                         android:layout_toLeftOf="@id/backcam_switch"
                         android:layout_toStartOf="@id/backcam_switch"
-                        android:text="Take photo from back camera" />
+                        android:text="Take photo from back camera"
+                        android:textSize="16sp" />
 
 
                 </RelativeLayout>
@@ -465,7 +478,8 @@
                         android:layout_centerVertical="true"
                         android:layout_toLeftOf="@id/frontcam_switch"
                         android:layout_toStartOf="@id/frontcam_switch"
-                        android:text="Take photo from front camera" />
+                        android:text="Take photo from front camera"
+                        android:textSize="16sp" />
 
 
                 </RelativeLayout>
@@ -500,11 +514,27 @@
                         android:layout_centerVertical="true"
                         android:layout_toLeftOf="@id/video_switch"
                         android:layout_toStartOf="@id/video_switch"
-                        android:text="Take video until button is released" />
+                        android:text="Take video until button is released"
+                        android:textSize="16sp" />
 
 
                 </RelativeLayout>
             </LinearLayout>
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="5dp"
+            app:cardElevation="3dp"
+            app:cardUseCompatPadding="true">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="10dp"
+                android:textSize="15sp"
+                android:text="Note: This app is made to work even when screen is off or device is locked."/>
         </android.support.v7.widget.CardView>
 
 
