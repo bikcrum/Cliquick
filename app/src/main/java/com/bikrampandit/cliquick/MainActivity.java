@@ -29,6 +29,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.rey.material.widget.Spinner;
 import com.rey.material.widget.Switch;
 
 import java.util.ArrayList;
@@ -118,8 +119,8 @@ public class MainActivity extends AppCompatActivity {
         setupUI();
     }
 
-    private void setupUI(){
-        ((Switch)findViewById(R.id.vol_up_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
+    private void setupUI() {
+        ((Switch) findViewById(R.id.vol_up_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.vol_up_text).setEnabled(checked);
@@ -128,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        ((Switch)findViewById(R.id.voice_code_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
+        ((Switch) findViewById(R.id.voice_code_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.voice_code_switch_text).setEnabled(checked);
@@ -139,7 +140,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        ((Switch)findViewById(R.id.send_message_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
+        ((Switch) findViewById(R.id.send_message_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.send_message_text).setEnabled(checked);
@@ -147,7 +148,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        ((Switch)findViewById(R.id.call_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
+        ((Switch) findViewById(R.id.call_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.call_switch_text).setEnabled(checked);
@@ -156,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-        ((Switch)findViewById(R.id.vol_down_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
+        ((Switch) findViewById(R.id.vol_down_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.vol_down_text).setEnabled(checked);
@@ -165,21 +166,21 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        ((Switch)findViewById(R.id.backcam_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
+        ((Switch) findViewById(R.id.backcam_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.backcam_switch_text).setEnabled(checked);
             }
         });
 
-        ((Switch)findViewById(R.id.frontcam_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
+        ((Switch) findViewById(R.id.frontcam_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.frontcam_switch_text).setEnabled(checked);
             }
         });
 
-        ((Switch)findViewById(R.id.video_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
+        ((Switch) findViewById(R.id.video_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.video_switch_text).setEnabled(checked);
@@ -187,8 +188,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-
     }
+
     @Override
     protected void onStart() {
         super.onStart();
@@ -331,7 +332,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void speakCode(View v){
+    public void speakCode(View v) {
         TextToSpeech textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int i) {
@@ -339,10 +340,15 @@ public class MainActivity extends AppCompatActivity {
             }
         });
         textToSpeech.setLanguage(Locale.US);
-        String text ="one one five four";
-;
+
+        String text = String.format(Locale.ENGLISH, "%s %s %s %s",
+                ((Spinner) findViewById(R.id.voice_code1)).getSelectedItem(),
+                ((Spinner) findViewById(R.id.voice_code2)).getSelectedItem().toString(),
+                ((Spinner) findViewById(R.id.voice_code3)).getSelectedItem().toString(),
+                ((Spinner) findViewById(R.id.voice_code4)).getSelectedItem().toString());
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            textToSpeech.speak(text,TextToSpeech.QUEUE_FLUSH,null,null);
+            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
         } else {
             textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null);
         }
