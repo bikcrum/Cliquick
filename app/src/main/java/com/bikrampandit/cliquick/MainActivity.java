@@ -29,7 +29,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.rey.material.widget.Spinner;
+import android.widget.Spinner;
+
 import com.rey.material.widget.Switch;
 
 import java.util.ArrayList;
@@ -41,7 +42,7 @@ import edu.cmu.pocketsphinx.SpeechRecognizer;
 
 import static android.widget.Toast.makeText;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements TextToSpeech.OnInitListener {
 
     /* Named searches allow to quickly reconfigure the decoder */
 
@@ -54,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
     private TagContainerLayout mTagContainerLayoutTextMessage;
     private TagContainerLayout mTagContainerLayoutCall;
 
-    private Switch aSwitch;
+    private TextToSpeech tts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,15 +76,10 @@ public class MainActivity extends AppCompatActivity {
         mTagContainerLayoutTextMessage = (TagContainerLayout) findViewById(R.id.tag_container_add_contact_for_text_msg);
         mTagContainerLayoutCall = (TagContainerLayout) findViewById(R.id.tag_container_add_contact_for_call);
 
-        mTagContainerLayoutCall.addTag("Add contact");
-        mTagContainerLayoutTextMessage.addTag("Add contact");
-
         mTagContainerLayoutCall.setOnTagClickListener(new TagView.OnTagClickListener() {
             @Override
             public void onTagClick(int position, String text) {
-                if ("Add contact".equals(text)) {
-                    addContactForCall();
-                }
+
             }
 
             @Override
@@ -93,16 +89,14 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onTagCrossClick(int position) {
-
+                mTagContainerLayoutCall.removeTag(position);
             }
         });
 
         mTagContainerLayoutTextMessage.setOnTagClickListener(new TagView.OnTagClickListener() {
             @Override
             public void onTagClick(int position, String text) {
-                if ("Add contact".equals(text)) {
-                    addContactForTxtMsg();
-                }
+
             }
 
             @Override
@@ -112,14 +106,16 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onTagCrossClick(int position) {
-
+                mTagContainerLayoutTextMessage.removeTag(position);
             }
         });
-
         setupUI();
     }
 
     private void setupUI() {
+        findViewById(R.id.speak_btn).setEnabled(false);
+        tts = new TextToSpeech(this, this);
+
         ((Switch) findViewById(R.id.vol_up_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
@@ -144,7 +140,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.send_message_text).setEnabled(checked);
-                findViewById(R.id.tag_container_add_contact_for_text_msg).setEnabled(checked);
             }
         });
 
@@ -152,7 +147,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.call_switch_text).setEnabled(checked);
-                findViewById(R.id.tag_container_add_contact_for_call).setEnabled(checked);
             }
         });
 
@@ -222,12 +216,12 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    public void addContactForTxtMsg() {
+    public void addContactForTxtMsg(View v) {
         Intent i = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
         startActivityForResult(i, Constant.PICK_CONTACT_FOR_TEXT_MSG);
     }
 
-    public void addContactForCall() {
+    public void addContactForCall(View v) {
         Intent i = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
         startActivityForResult(i, Constant.PICK_CONTACT_FOR_CALL);
     }
@@ -333,25 +327,45 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void speakCode(View v) {
-        TextToSpeech textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int i) {
-
-            }
-        });
-        textToSpeech.setLanguage(Locale.US);
-
         String text = String.format(Locale.ENGLISH, "%s %s %s %s",
-                ((Spinner) findViewById(R.id.voice_code1)).getSelectedItem(),
+                ((Spinner) findViewById(R.id.voice_code1)).getSelectedItem().toString(),
                 ((Spinner) findViewById(R.id.voice_code2)).getSelectedItem().toString(),
                 ((Spinner) findViewById(R.id.voice_code3)).getSelectedItem().toString(),
                 ((Spinner) findViewById(R.id.voice_code4)).getSelectedItem().toString());
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
+            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
         } else {
-            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null);
+            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null);
         }
+    }
+
+    @Override
+    public void onInit(int status) {
+        if (status == TextToSpeech.SUCCESS) {
+
+            int result = tts.setLanguage(Locale.US);
+
+            if (result == TextToSpeech.LANG_MISSING_DATA
+                    || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("TTS", "This Language is not supported");
+            } else {
+                findViewById(R.id.speak_btn).setEnabled(true);
+            }
+
+        } else {
+            findViewById(R.id.speak_btn).setEnabled(false);
+            Log.e("TTS", "Initilization Failed!");
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+        }
+        super.onDestroy();
     }
 }
 
