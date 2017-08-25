@@ -115,6 +115,10 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        setupUI();
+    }
+
+    private void setupUI(){
         ((Switch)findViewById(R.id.vol_up_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
@@ -123,8 +127,68 @@ public class MainActivity extends AppCompatActivity {
                 findViewById(R.id.time_spinner).setEnabled(checked);
             }
         });
-    }
 
+        ((Switch)findViewById(R.id.voice_code_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(Switch view, boolean checked) {
+                findViewById(R.id.voice_code_switch_text).setEnabled(checked);
+                findViewById(R.id.voice_code1).setEnabled(checked);
+                findViewById(R.id.voice_code2).setEnabled(checked);
+                findViewById(R.id.voice_code3).setEnabled(checked);
+                findViewById(R.id.voice_code4).setEnabled(checked);
+            }
+        });
+
+        ((Switch)findViewById(R.id.send_message_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(Switch view, boolean checked) {
+                findViewById(R.id.send_message_text).setEnabled(checked);
+                findViewById(R.id.tag_container_add_contact_for_text_msg).setEnabled(checked);
+            }
+        });
+
+        ((Switch)findViewById(R.id.call_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(Switch view, boolean checked) {
+                findViewById(R.id.call_switch_text).setEnabled(checked);
+                findViewById(R.id.tag_container_add_contact_for_call).setEnabled(checked);
+            }
+        });
+
+
+        ((Switch)findViewById(R.id.vol_down_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(Switch view, boolean checked) {
+                findViewById(R.id.vol_down_text).setEnabled(checked);
+                findViewById(R.id.vol_down_text1).setEnabled(checked);
+                findViewById(R.id.time2_spinner).setEnabled(checked);
+            }
+        });
+
+        ((Switch)findViewById(R.id.backcam_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(Switch view, boolean checked) {
+                findViewById(R.id.backcam_switch_text).setEnabled(checked);
+            }
+        });
+
+        ((Switch)findViewById(R.id.frontcam_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(Switch view, boolean checked) {
+                findViewById(R.id.frontcam_switch_text).setEnabled(checked);
+            }
+        });
+
+        ((Switch)findViewById(R.id.video_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(Switch view, boolean checked) {
+                findViewById(R.id.video_switch_text).setEnabled(checked);
+            }
+        });
+
+
+
+    }
     @Override
     protected void onStart() {
         super.onStart();

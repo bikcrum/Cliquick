@@ -102,6 +102,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:id="@+id/voice_code_switch_text"
                         android:text="If following voice code is spoken"
                         android:layout_toLeftOf="@id/voice_code_switch"
                         android:layout_toStartOf="@id/voice_code_switch"
@@ -121,6 +122,7 @@
                         android:background="@drawable/gradient_spinner"
                         android:layout_gravity="center_vertical"
                         android:layout_margin="2dp"
+                        android:id="@+id/voice_code1"
                         android:entries="@array/digits"/>
 
                     <Spinner
@@ -129,6 +131,7 @@
                         android:background="@drawable/gradient_spinner"
                         android:layout_gravity="center_vertical"
                         android:layout_margin="2dp"
+                        android:id="@+id/voice_code2"
                         android:entries="@array/digits"/>
                     <Spinner
                         android:layout_width="wrap_content"
@@ -136,6 +139,7 @@
                         android:background="@drawable/gradient_spinner"
                         android:layout_gravity="center_vertical"
                         android:layout_margin="2dp"
+                        android:id="@+id/voice_code3"
                         android:entries="@array/digits"/>
                     <Spinner
                         android:layout_width="wrap_content"
@@ -143,6 +147,7 @@
                         android:background="@drawable/gradient_spinner"
                         android:layout_gravity="center_vertical"
                         android:layout_margin="2dp"
+                        android:id="@+id/voice_code4"
                         android:entries="@array/digits"/>
 
                     <ImageButton
@@ -151,6 +156,7 @@
                         android:layout_height="wrap_content"
                         android:src="@drawable/ic_speaker"
                         android:layout_marginLeft="10dp"
+                        android:layout_marginStart="10dp"
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:id="@+id/speak_btn"
                         android:onClick="speakCode"
@@ -205,6 +211,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:id="@+id/send_message_text"
                         android:text="Send panic text message\nto the following contacts"
                         android:layout_alignParentTop="true"
                         android:layout_alignParentLeft="true"
@@ -261,6 +268,7 @@
                         android:layout_centerVertical="true"
                         android:layout_toLeftOf="@id/call_switch"
                         android:layout_toStartOf="@id/call_switch"
+                        android:id="@+id/call_switch_text"
                         android:text="Make a call\nto the following contacts" />
 
                 </RelativeLayout>
@@ -297,11 +305,33 @@
                 android:orientation="vertical"
                 android:padding="10dp">
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:text="If volume down button"
-                    android:textSize="18sp" />
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.rey.material.widget.Switch
+                        android:id="@+id/vol_down_switch"
+                        style="@style/Material.Widget.Switch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_alignParentRight="true"
+                        android:layout_centerVertical="true"
+                        android:checked="false" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="If volume down button"
+                        android:id="@+id/vol_down_text"
+                        android:layout_toLeftOf="@id/vol_down_switch"
+                        android:layout_toStartOf="@id/vol_down_switch"
+                        android:layout_alignParentStart="false"
+                        android:layout_alignParentLeft="true"
+                        android:textSize="18sp" />
+                </RelativeLayout>
+
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -312,6 +342,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="0.5"
+                        android:id="@+id/vol_down_text1"
                         android:text="is pressed for" />
 
                     <Spinner
@@ -364,6 +395,7 @@
                         android:layout_alignParentLeft="true"
                         android:layout_alignParentStart="true"
                         android:layout_centerVertical="true"
+                        android:id="@+id/backcam_switch_text"
                         android:layout_toLeftOf="@id/backcam_switch"
                         android:layout_toStartOf="@id/backcam_switch"
                         android:text="Take photo from back camera" />
@@ -398,6 +430,7 @@
                         android:layout_alignParentLeft="true"
                         android:layout_alignParentStart="true"
                         android:layout_centerVertical="true"
+                        android:id="@+id/frontcam_switch_text"
                         android:layout_toLeftOf="@id/frontcam_switch"
                         android:layout_toStartOf="@id/frontcam_switch"
                         android:text="Take photo from front camera" />
@@ -431,6 +464,7 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentLeft="true"
                         android:layout_alignParentStart="true"
+                        android:id="@+id/video_switch_text"
                         android:layout_centerVertical="true"
                         android:layout_toLeftOf="@id/video_switch"
                         android:layout_toStartOf="@id/video_switch"
