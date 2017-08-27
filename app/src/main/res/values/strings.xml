@@ -11,13 +11,26 @@
         <item>zero</item>
         <item>one</item>
         <item>two</item>
+        <item>three</item>
         <item>four</item>
-        <item>five</item>
         <item>five</item>
         <item>six</item>
         <item>seven</item>
         <item>eight</item>
-        <item>night</item>
+        <item>nine</item>
+    </string-array>
+
+    <string-array name="frequency">
+        <item>5 seconds</item>
+        <item>10 seconds</item>
+        <item>30 seconds</item>
+        <item>1 minute</item>
+        <item>2 minutes</item>
+        <item>5 minutes</item>
+        <item>10 minutes</item>
+        <item>30 minutes</item>
+        <item>1 hour</item>
+        <item>2 hours</item>
 
     </string-array>
     <string name="title_activity_contact_picker">ContactPickerActivity</string>
@@ -27,5 +40,6 @@
     <string name="digits_caption">To try recognition of digits: say something like \"one two three four five\".</string>
     <string name="forecast_caption">To try recognition of a weather forecast like \"sunny spells on Wednesday\".</string>
     <string name="phone_caption">To try phonetic recognition say anything.</string>
+    <string name="title_activity_main2">Main2Activity</string>
 
 </resources>

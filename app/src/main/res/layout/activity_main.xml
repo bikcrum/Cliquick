@@ -43,7 +43,7 @@
                         android:layout_alignParentEnd="true"
                         android:layout_alignParentRight="true"
                         android:layout_centerVertical="true"
-                        android:checked="false" />
+                        android:checked="true" />
 
                     <TextView
                         android:id="@+id/vol_up_text"
@@ -72,7 +72,7 @@
                         android:textSize="16sp" />
 
                     <Spinner
-                        android:id="@+id/time_spinner"
+                        android:id="@+id/vol_up_time_spinner"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerVertical="true"
@@ -105,7 +105,7 @@
                         android:layout_alignParentEnd="true"
                         android:layout_alignParentRight="true"
                         android:layout_alignParentTop="true"
-                        android:checked="false" />
+                        android:checked="true" />
 
                     <TextView
                         android:id="@+id/voice_code_switch_text"
@@ -122,6 +122,7 @@
 
                 <RelativeLayout
                     android:layout_width="match_parent"
+                    android:layout_marginBottom="10dp"
                     android:layout_height="wrap_content">
 
                     <ImageButton
@@ -185,6 +186,13 @@
 
                 </RelativeLayout>
 
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/mic_note"
+                    android:textSize="14sp"
+                    android:text="Note: Other application won't be able to use mic while this feature is on"/>
+
 
             </LinearLayout>
 
@@ -226,7 +234,7 @@
                         android:layout_alignParentEnd="true"
                         android:layout_alignParentRight="true"
                         android:layout_centerVertical="true"
-                        android:checked="false" />
+                        android:checked="true" />
 
                     <TextView
                         android:id="@+id/send_message_text"
@@ -257,7 +265,7 @@
                     app:container_enable_drag="false"
                     app:horizontal_interval="10dp"
                     app:tag_clickable="true"
-
+                    app:tag_enable_cross="true"
                     app:tag_max_length="50"
                     app:tag_theme="pure_teal"
                     app:vertical_interval="10dp" />
@@ -284,7 +292,7 @@
                         android:layout_alignParentEnd="true"
                         android:layout_alignParentRight="true"
                         android:layout_centerVertical="true"
-                        android:checked="false" />
+                        android:checked="true" />
 
                     <TextView
                         android:id="@+id/call_switch_text"
@@ -317,7 +325,7 @@
                     app:container_enable_drag="false"
                     app:horizontal_interval="10dp"
                     app:tag_clickable="true"
-
+                    app:tag_enable_cross="true"
                     app:tag_max_length="50"
                     app:tag_theme="pure_teal"
                     app:vertical_interval="10dp" />
@@ -354,7 +362,7 @@
                         android:layout_alignParentEnd="true"
                         android:layout_alignParentRight="true"
                         android:layout_centerVertical="true"
-                        android:checked="false" />
+                        android:checked="true" />
 
                     <TextView
                         android:id="@+id/vol_down_text"
@@ -376,14 +384,14 @@
 
                     <TextView
                         android:id="@+id/vol_down_text1"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerVertical="true"
                         android:text="is pressed for"
                         android:textSize="16sp" />
 
                     <Spinner
-                        android:id="@+id/time2_spinner"
+                        android:id="@+id/vol_down_time_spinner"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_centerVertical="true"
@@ -402,9 +410,9 @@
         <android.support.v7.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
             app:cardCornerRadius="5dp"
             app:cardElevation="3dp"
-            android:layout_marginBottom="10dp"
             app:cardUseCompatPadding="true">
 
             <LinearLayout
@@ -431,7 +439,7 @@
                         android:layout_height="wrap_content"
                         android:layout_alignParentEnd="true"
                         android:layout_alignParentRight="true"
-                        android:checked="false" />
+                        android:checked="true" />
 
                     <TextView
                         android:id="@+id/backcam_switch_text"
@@ -467,7 +475,7 @@
                         android:layout_alignParentEnd="true"
                         android:layout_alignParentRight="true"
                         android:layout_centerVertical="true"
-                        android:checked="false" />
+                        android:checked="true" />
 
                     <TextView
                         android:id="@+id/frontcam_switch_text"
@@ -503,7 +511,7 @@
                         android:layout_alignParentEnd="true"
                         android:layout_alignParentRight="true"
                         android:layout_centerVertical="true"
-                        android:checked="false" />
+                        android:checked="true" />
 
                     <TextView
                         android:id="@+id/video_switch_text"
@@ -533,8 +541,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="10dp"
-                android:textSize="15sp"
-                android:text="Note: This app is made to work even when screen is off or device is locked."/>
+                android:text="Note: This app is made to work even when screen is off or device is locked."
+                android:textSize="15sp" />
         </android.support.v7.widget.CardView>
 
 

@@ -256,7 +256,7 @@ public class MyService extends Service implements RecognitionListener {
         recognizer.stop();
         recognizer.cancel();
         // If we are not spotting, start listening with timeout (10000 ms or 10 seconds).
-        recognizer.startListening(searchName, 3000);
+        recognizer.startListening(searchName, 10000);
     }
 
     private void panic() {

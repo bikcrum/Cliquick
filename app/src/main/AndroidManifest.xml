@@ -3,11 +3,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.bikrampandit.cliquick">
 
+    <uses-sdk tools:overrideLibrary="com.google.android.gms.ads.impl, com.google.android.gms.ads, com.google.android.gms.clearcut, com.google.android.gms.base, com.google.android.gms.tasks, com.google.android.gms.gass, com.google.android.gms, edu.cmu.pocketsphinx, com.chaos.view" />
+
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-sdk tools:overrideLibrary="com.google.android.gms.ads.impl, com.google.android.gms.ads, com.google.android.gms.clearcut, com.google.android.gms.base, com.google.android.gms.tasks, com.google.android.gms.gass, com.google.android.gms, edu.cmu.pocketsphinx, com.chaos.view, com.dpizarro.pinview.library, com.pchmn.materialchips, com.beloo.widget.chipslayoutmanager" />
 
     <application
         android:allowBackup="true"
@@ -15,7 +16,9 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity" android:launchMode="singleInstance">
+        <activity
+            android:name=".MainActivity"
+            android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -28,6 +31,9 @@
             android:enabled="true"
             android:exported="true" />
 
+        <activity android:name=".Setting"  android:label="Setting" android:parentActivityName=".MainActivity">
+
+        </activity>
     </application>
 
 </manifest>

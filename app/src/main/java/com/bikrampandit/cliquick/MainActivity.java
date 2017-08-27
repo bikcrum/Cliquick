@@ -3,17 +3,20 @@ package com.bikrampandit.cliquick;
 import android.Manifest;
 import android.app.Activity;
 import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.ContactsContract;
+import android.provider.SyncStateContract;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -21,6 +24,8 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
@@ -35,28 +40,23 @@ import com.rey.material.widget.Switch;
 
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Set;
 
 import co.lujun.androidtagview.TagContainerLayout;
 import co.lujun.androidtagview.TagView;
-import edu.cmu.pocketsphinx.SpeechRecognizer;
 
 import static android.widget.Toast.makeText;
 
 public class MainActivity extends AppCompatActivity implements TextToSpeech.OnInitListener {
-
-    /* Named searches allow to quickly reconfigure the decoder */
-
-    /* Used to handle permission request */
-    private static final int PERMISSIONS_REQUEST_RECORD_AUDIO = 1;
-
-
     private MyService myService;
     private boolean isBound;
     private TagContainerLayout mTagContainerLayoutTextMessage;
     private TagContainerLayout mTagContainerLayoutCall;
 
-    private TextToSpeech tts;
     private SharedPreferences preferences;
+    SQLiteDatabase db;
+
+    private TextToSpeech tts;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,20 +65,57 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
 
+        tts = new TextToSpeech(this, this);
+
+        preferences = getSharedPreferences(Constant.PREFERENCE_NAME, MODE_PRIVATE);
+
+        db = new SettingReaderDbHelper(this).getReadableDatabase();
+
+        if (preferences.getBoolean(Constant.FIRST_LAUNCH, true)) {
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean(Constant.VOLUME_UP_ENABLED, true);
+            editor.putInt(Constant.VOLUME_UP_TIME_INDEX, 1);
+            editor.putBoolean(Constant.VOICE_ENABLED, true);
+            editor.putString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE);
+            editor.putBoolean(Constant.TEXT_MESSAGING_ENABLED, true);
+            editor.putBoolean(Constant.CALL_ENABLED, false);
+
+            editor.putBoolean(Constant.VOLUME_DOWN_ENABLED, true);
+            editor.putInt(Constant.VOLUME_DOWN_TIME_INDEX, 1);
+            editor.putBoolean(Constant.TAKE_PHOTO_BACK_CAM, true);
+            editor.putBoolean(Constant.TAKE_PHOTO_FRONT_CAM, false);
+            editor.putBoolean(Constant.TAKE_VIDEO, false);
+
+            editor.putBoolean(Constant.FIRST_LAUNCH, false);
+
+            editor.apply();
+        }
+
+        setupUI();
 
         int permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.RECORD_AUDIO);
         if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, PERMISSIONS_REQUEST_RECORD_AUDIO);
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, Constant.PERMISSIONS_REQUEST_RECORD_AUDIO);
+        }
+        permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, Constant.PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
         }
 
         Intent i = new Intent(this, MyService.class);
         startService(i);
+    }
 
+    private void setupUI() {
         mTagContainerLayoutTextMessage = (TagContainerLayout) findViewById(R.id.tag_container_add_contact_for_text_msg);
         mTagContainerLayoutCall = (TagContainerLayout) findViewById(R.id.tag_container_add_contact_for_call);
-
-        mTagContainerLayoutTextMessage.addTag("No contacts");
-        mTagContainerLayoutCall.addTag("No contacts");
+        try {
+            loadContacts();
+        } catch (Exception e) {
+            e.printStackTrace();
+            db.execSQL(SettingReaderDbHelper.SQL_DELETE_ENTRIES);
+            db.execSQL(SettingReaderDbHelper.SQL_CREATE_ENTRIES);
+        }
 
         mTagContainerLayoutCall.setOnTagClickListener(new TagView.OnTagClickListener() {
             @Override
@@ -93,6 +130,14 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
             @Override
             public void onTagCrossClick(int position) {
+                String selection =
+                        Constant.COLUMN_CONTACT + " LIKE ? AND " +
+                                Constant.COLUMN_FLAG + " LIKE ?";
+
+                String[] selectionArgs = {
+                        mTagContainerLayoutCall.getTagText(position), Constant.CALL_ENABLED
+                };
+                db.delete(Constant.TABLE_NAME, selection, selectionArgs);
                 mTagContainerLayoutCall.removeTag(position);
             }
         });
@@ -100,50 +145,74 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         mTagContainerLayoutTextMessage.setOnTagClickListener(new TagView.OnTagClickListener() {
             @Override
             public void onTagClick(int position, String text) {
-
             }
 
             @Override
             public void onTagLongClick(int position, String text) {
-
             }
 
             @Override
             public void onTagCrossClick(int position) {
+                String selection =
+                        Constant.COLUMN_CONTACT + " LIKE ? AND " +
+                                Constant.COLUMN_FLAG + " LIKE ?";
+
+
+                String[] selectionArgs = {
+                        mTagContainerLayoutTextMessage.getTagText(position), Constant.TEXT_MESSAGING_ENABLED
+                };
+                db.delete(Constant.TABLE_NAME, selection, selectionArgs);
                 mTagContainerLayoutTextMessage.removeTag(position);
             }
         });
-        setupUI();
-    }
-
-    private void setupUI() {
-        preferences = getSharedPreferences(Constant.PREFERENCE_NAME,MODE_PRIVATE);
-
-        findViewById(R.id.speak_btn).setEnabled(false);
-        tts = new TextToSpeech(this, this);
 
         findViewById(R.id.add_contact_for_text_msg).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                addContactForTxtMsg(view);
+                int permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_CONTACTS);
+                if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, Constant.PERMISSIONS_REQUEST_READ_CONTACTS);
+                } else {
+                    addContactForTxtMsg();
+                }
             }
         });
 
         findViewById(R.id.add_contact_for_call).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                addContactForCall(view);
+                int permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_CONTACTS);
+                if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, Constant.PERMISSIONS_REQUEST_READ_CONTACTS);
+                } else {
+                    addContactForCall();
+                }
             }
         });
+
 
         ((Switch) findViewById(R.id.vol_up_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.vol_up_text).setEnabled(checked);
                 findViewById(R.id.vol_up_text1).setEnabled(checked);
-                findViewById(R.id.time_spinner).setEnabled(checked);
+                findViewById(R.id.vol_up_time_spinner).setEnabled(checked);
+
+                preferences.edit().putBoolean(Constant.VOLUME_UP_ENABLED, checked).apply();
             }
         });
+
+        ((Spinner) findViewById(R.id.vol_up_time_spinner)).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                preferences.edit().putInt(Constant.VOLUME_UP_TIME_INDEX, position).apply();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+            }
+        });
+
 
         ((Switch) findViewById(R.id.voice_code_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
@@ -153,6 +222,69 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 findViewById(R.id.voice_code2).setEnabled(checked);
                 findViewById(R.id.voice_code3).setEnabled(checked);
                 findViewById(R.id.voice_code4).setEnabled(checked);
+                findViewById(R.id.speak_btn).setVisibility(checked ? View.VISIBLE : View.GONE);
+                findViewById(R.id.mic_note).setVisibility(checked ? View.VISIBLE : View.GONE);
+
+                preferences.edit().putBoolean(Constant.VOICE_ENABLED, checked).apply();
+            }
+        });
+
+        ((Spinner) findViewById(R.id.voice_code1)).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                String voiceCode = preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE);
+                voiceCode = position + voiceCode.substring(1);
+                preferences.edit().putString(Constant.VOICE_CODE, voiceCode).apply();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+        ((Spinner) findViewById(R.id.voice_code2)).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                String voiceCode = preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE);
+                voiceCode = voiceCode.substring(0, 1) + position + voiceCode.substring(2);
+                Log.i("biky", "voice code after setting " + voiceCode);
+                preferences.edit().putString(Constant.VOICE_CODE, voiceCode).apply();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+        ((Spinner) findViewById(R.id.voice_code3)).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                String voiceCode = preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE);
+                voiceCode = voiceCode.substring(0, 2) + position + voiceCode.substring(3);
+                Log.i("biky", "voice code after setting " + voiceCode);
+                preferences.edit().putString(Constant.VOICE_CODE, voiceCode).apply();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
+        ((Spinner) findViewById(R.id.voice_code4)).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                String voiceCode = preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE);
+                voiceCode = voiceCode.substring(0, 3) + position;
+                Log.i("biky", "voice code after setting " + voiceCode);
+                preferences.edit().putString(Constant.VOICE_CODE, voiceCode).apply();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
             }
         });
 
@@ -160,6 +292,10 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.send_message_text).setEnabled(checked);
+                findViewById(R.id.add_contact_for_text_msg).setEnabled(checked);
+                mTagContainerLayoutTextMessage.setVisibility(checked ? View.VISIBLE : View.GONE);
+
+                preferences.edit().putBoolean(Constant.TEXT_MESSAGING_ENABLED, checked).apply();
             }
         });
 
@@ -167,16 +303,32 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.call_switch_text).setEnabled(checked);
+                findViewById(R.id.add_contact_for_call).setEnabled(checked);
+                mTagContainerLayoutCall.setVisibility(checked ? View.VISIBLE : View.GONE);
+
+                preferences.edit().putBoolean(Constant.CALL_ENABLED, checked).apply();
             }
         });
-
 
         ((Switch) findViewById(R.id.vol_down_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.vol_down_text).setEnabled(checked);
                 findViewById(R.id.vol_down_text1).setEnabled(checked);
-                findViewById(R.id.time2_spinner).setEnabled(checked);
+                findViewById(R.id.vol_down_time_spinner).setEnabled(checked);
+
+                preferences.edit().putBoolean(Constant.VOLUME_DOWN_ENABLED, checked).apply();
+            }
+        });
+
+        ((Spinner) findViewById(R.id.vol_down_time_spinner)).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+                preferences.edit().putInt(Constant.VOLUME_DOWN_TIME_INDEX, position).apply();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
             }
         });
 
@@ -184,6 +336,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.backcam_switch_text).setEnabled(checked);
+
+                preferences.edit().putBoolean(Constant.TAKE_PHOTO_BACK_CAM, checked).apply();
             }
         });
 
@@ -191,6 +345,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.frontcam_switch_text).setEnabled(checked);
+
+                preferences.edit().putBoolean(Constant.TAKE_PHOTO_FRONT_CAM, checked).apply();
             }
         });
 
@@ -198,10 +354,43 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.video_switch_text).setEnabled(checked);
+
+                preferences.edit().putBoolean(Constant.TAKE_VIDEO, checked).apply();
             }
         });
 
+        ((Switch) findViewById(R.id.vol_up_switch))
+                .setCheckedImmediately(preferences.getBoolean(Constant.VOLUME_UP_ENABLED, false));
 
+        ((Spinner) findViewById(R.id.vol_up_time_spinner)).setSelection(preferences.getInt(Constant.VOLUME_UP_TIME_INDEX, 1));
+
+        ((Switch) findViewById(R.id.voice_code_switch))
+                .setCheckedImmediately(preferences.getBoolean(Constant.VOICE_ENABLED, false));
+
+        ((Spinner) findViewById(R.id.voice_code1)).setSelection(Integer.parseInt(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).substring(0,1)));
+        ((Spinner) findViewById(R.id.voice_code2)).setSelection(Integer.parseInt(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).substring(1,1)));
+        ((Spinner) findViewById(R.id.voice_code3)).setSelection(Integer.parseInt(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).substring(2,1)));
+        ((Spinner) findViewById(R.id.voice_code4)).setSelection(Integer.parseInt(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).substring(3,1)));
+
+        ((Switch) findViewById(R.id.send_message_switch))
+                .setCheckedImmediately(preferences.getBoolean(Constant.TEXT_MESSAGING_ENABLED, false));
+
+        ((Switch) findViewById(R.id.call_switch))
+                .setCheckedImmediately(preferences.getBoolean(Constant.CALL_ENABLED, false));
+
+        ((Switch) findViewById(R.id.vol_down_switch))
+                .setCheckedImmediately(preferences.getBoolean(Constant.VOLUME_DOWN_ENABLED, false));
+
+        ((Spinner) findViewById(R.id.vol_down_time_spinner)).setSelection(preferences.getInt(Constant.VOLUME_DOWN_TIME_INDEX, 1));
+
+        ((Switch) findViewById(R.id.frontcam_switch))
+                .setCheckedImmediately(preferences.getBoolean(Constant.TAKE_PHOTO_FRONT_CAM, false));
+
+        ((Switch) findViewById(R.id.backcam_switch))
+                .setCheckedImmediately(preferences.getBoolean(Constant.TAKE_PHOTO_BACK_CAM, false));
+
+        ((Switch) findViewById(R.id.video_switch))
+                .setCheckedImmediately(preferences.getBoolean(Constant.TAKE_VIDEO, false));
     }
 
     @Override
@@ -236,12 +425,12 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         }
     };
 
-    public void addContactForTxtMsg(View v) {
+    public void addContactForTxtMsg() {
         Intent i = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
         startActivityForResult(i, Constant.PICK_CONTACT_FOR_TEXT_MSG);
     }
 
-    public void addContactForCall(View v) {
+    public void addContactForCall() {
         Intent i = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
         startActivityForResult(i, Constant.PICK_CONTACT_FOR_CALL);
     }
@@ -249,12 +438,14 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     public void onActivityResult(final int reqCode, int resultCode, Intent data) {
         super.onActivityResult(reqCode, resultCode, data);
 
+        Log.i("biky", "reqcode = " + reqCode + " result code = " + resultCode);
+
         if (reqCode == Constant.PICK_CONTACT_FOR_CALL || reqCode == Constant.PICK_CONTACT_FOR_TEXT_MSG) {
 
             if (resultCode == Activity.RESULT_OK) {
 
                 Uri result = data.getData();
-                Log.i("biky", "Got a result: " + result.toString());
+                Log.v("biky", "Got a result: " + result.toString());
 
 // get the phone number id from the Uri
                 String id = result.getLastPathSegment();
@@ -295,8 +486,18 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 if (phoneNumbers.size() == 1) {
                     if (reqCode == Constant.PICK_CONTACT_FOR_TEXT_MSG) {
                         mTagContainerLayoutTextMessage.addTag(name + " (" + phoneNumbers.get(0) + ")");
+                        //save to db
+                        ContentValues values = new ContentValues();
+                        values.put(Constant.COLUMN_CONTACT, name + " (" + phoneNumbers.get(0) + ")");
+                        values.put(Constant.COLUMN_FLAG, Constant.TEXT_MESSAGING_ENABLED);
+                        db.insert(Constant.TABLE_NAME, null, values);
                     } else {
                         mTagContainerLayoutCall.addTag(name + " (" + phoneNumbers.get(0) + ")");
+                        //save to db
+                        ContentValues values = new ContentValues();
+                        values.put(Constant.COLUMN_CONTACT, name + " (" + phoneNumbers.get(0) + ")");
+                        values.put(Constant.COLUMN_FLAG, Constant.CALL_ENABLED);
+                        db.insert(Constant.TABLE_NAME, null, values);
                     }
                     return;
                 }
@@ -331,6 +532,12 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                     }
                 });
             }
+        } else if (reqCode == Constant.SETTING_COMPLETE && resultCode == RESULT_OK) {
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean(Constant.VIBRATE, data.getBooleanExtra(Constant.VIBRATE, true));
+            editor.putString(Constant.PANIC_TEXT,data.getStringExtra(Constant.PANIC_TEXT));
+            editor.putBoolean(Constant.SEND_LOCATION,data.getBooleanExtra(Constant.SEND_LOCATION,true));
+            editor.apply();
         }
     }
 
@@ -338,12 +545,17 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     public void onRequestPermissionsResult(int requestCode,
                                            String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == PERMISSIONS_REQUEST_RECORD_AUDIO) {
+/*
+        if (requestCode == Constant.PERMISSIONS_REQUEST_RECORD_AUDIO) {
             if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, PERMISSIONS_REQUEST_RECORD_AUDIO);
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, Constant.PERMISSIONS_REQUEST_RECORD_AUDIO);
+            }
+        }else if (requestCode == Constant.PERMISSIONS_REQUEST_READ_CONTACTS){
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CONTACTS}, Constant.PERMISSIONS_REQUEST_READ_CONTACTS);
             }
         }
+        */
     }
 
     public void speakCode(View v) {
@@ -385,7 +597,64 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             tts.stop();
             tts.shutdown();
         }
+        db.close();
         super.onDestroy();
+    }
+
+    void loadContacts() throws Exception {
+        String[] projection = {
+                Constant.COLUMN_CONTACT,
+                Constant.COLUMN_FLAG,
+        };
+        Cursor cursor = db.query(
+                Constant.TABLE_NAME,                     // The table to query
+                projection,                               // The columns to return
+                //selection,                                // The columns for the WHERE clause
+                null,
+                //selectionArgs,                            // The values for the WHERE clause
+                null,
+                null,                                     // don't group the rows
+                null,                                     // don't filter by row groups
+                //sortOrder                                 // The sort order
+                null
+        );
+        while (cursor.moveToNext()) {
+            String contact = cursor.getString(
+                    cursor.getColumnIndexOrThrow(Constant.COLUMN_CONTACT));
+
+            String flag = cursor.getString(
+                    cursor.getColumnIndexOrThrow(Constant.COLUMN_FLAG));
+
+            if (Constant.TEXT_MESSAGING_ENABLED.equals(flag)) {
+                mTagContainerLayoutTextMessage.addTag(contact);
+            } else if (Constant.CALL_ENABLED.equals(flag)) {
+                mTagContainerLayoutCall.addTag(contact);
+            }
+        }
+        cursor.close();
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_bar, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.setting:
+                Intent i = new Intent(this, Setting.class);
+                i.putExtra(Constant.VIBRATE, preferences.getBoolean(Constant.VIBRATE, true));
+                i.putExtra(Constant.PANIC_TEXT,preferences.getString(Constant.PANIC_TEXT,Constant.DEFAULT_PANIC_TEXT));
+                i.putExtra(Constant.SEND_LOCATION,preferences.getBoolean(Constant.SEND_LOCATION,true));
+                startActivityForResult(i, Constant.SETTING_COMPLETE);
+                return true;
+            case R.id.gallery:
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 }
 
