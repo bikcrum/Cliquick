@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Set;
 
+import co.lujun.androidtagview.ColorFactory;
 import co.lujun.androidtagview.TagContainerLayout;
 import co.lujun.androidtagview.TagView;
 
@@ -71,39 +72,42 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
         db = new SettingReaderDbHelper(this).getReadableDatabase();
 
-        if (preferences.getBoolean(Constant.FIRST_LAUNCH, true)) {
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putBoolean(Constant.VOLUME_UP_ENABLED, true);
-            editor.putInt(Constant.VOLUME_UP_TIME_INDEX, 1);
-            editor.putBoolean(Constant.VOICE_ENABLED, true);
-            editor.putString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE);
-            editor.putBoolean(Constant.TEXT_MESSAGING_ENABLED, true);
-            editor.putBoolean(Constant.CALL_ENABLED, false);
-
-            editor.putBoolean(Constant.VOLUME_DOWN_ENABLED, true);
-            editor.putInt(Constant.VOLUME_DOWN_TIME_INDEX, 1);
-            editor.putBoolean(Constant.TAKE_PHOTO_BACK_CAM, true);
-            editor.putBoolean(Constant.TAKE_PHOTO_FRONT_CAM, false);
-            editor.putBoolean(Constant.TAKE_VIDEO, false);
-
-            editor.putBoolean(Constant.FIRST_LAUNCH, false);
-
-            editor.apply();
-        }
-
         setupUI();
 
-        int permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.RECORD_AUDIO);
-        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, Constant.PERMISSIONS_REQUEST_RECORD_AUDIO);
-        }
-        permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, Constant.PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
-        }
+        handlePermissions();
 
         Intent i = new Intent(this, MyService.class);
         startService(i);
+    }
+
+    private void handlePermissions() {
+        //record audio permission
+        if (preferences.getBoolean(Constant.VOICE_ENABLED, true)) {
+
+            if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.RECORD_AUDIO) !=
+                    PackageManager.PERMISSION_GRANTED ||
+                    ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
+                            PackageManager.PERMISSION_GRANTED) {
+
+                ((Switch) findViewById(R.id.voice_code_switch)).setCheckedImmediately(false);
+                preferences.edit().putBoolean(Constant.VOICE_ENABLED, false).apply();
+
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE}, Constant.PERMISSIONS_POCKET_SPHINX);
+            }
+        }
+
+        //vibrate permission
+        int permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.VIBRATE);
+        if (preferences.getBoolean(Constant.VIBRATE, true) && permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            preferences.edit().putBoolean(Constant.VIBRATE, false).apply();
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.VIBRATE}, Constant.PERMISSIONS_VIBRATE);
+        }
+        /*
+        //write external storage permission
+        permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, Constant.PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
+        }*/
     }
 
     private void setupUI() {
@@ -116,7 +120,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             db.execSQL(SettingReaderDbHelper.SQL_DELETE_ENTRIES);
             db.execSQL(SettingReaderDbHelper.SQL_CREATE_ENTRIES);
         }
-
+        //set listeners
         mTagContainerLayoutCall.setOnTagClickListener(new TagView.OnTagClickListener() {
             @Override
             public void onTagClick(int position, String text) {
@@ -170,8 +174,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             @Override
             public void onClick(View view) {
                 int permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_CONTACTS);
-                if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, Constant.PERMISSIONS_REQUEST_READ_CONTACTS);
+                if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, Constant.PERMISSIONS_REQUEST_READ_CONTACTS_FOR_TEXT_MSG);
                 } else {
                     addContactForTxtMsg();
                 }
@@ -183,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             public void onClick(View view) {
                 int permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_CONTACTS);
                 if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, Constant.PERMISSIONS_REQUEST_READ_CONTACTS);
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, Constant.PERMISSIONS_REQUEST_READ_CONTACTS_FOR_CALL);
                 } else {
                     addContactForCall();
                 }
@@ -217,6 +221,17 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         ((Switch) findViewById(R.id.voice_code_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
+                if (checked) {
+                    if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.RECORD_AUDIO) !=
+                            PackageManager.PERMISSION_GRANTED ||
+                            ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
+                                    PackageManager.PERMISSION_GRANTED) {
+
+                        view.setCheckedImmediately(false);
+                        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE}, Constant.PERMISSIONS_POCKET_SPHINX);
+                        return;
+                    }
+                }
                 findViewById(R.id.voice_code_switch_text).setEnabled(checked);
                 findViewById(R.id.voice_code1).setEnabled(checked);
                 findViewById(R.id.voice_code2).setEnabled(checked);
@@ -232,9 +247,10 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         ((Spinner) findViewById(R.id.voice_code1)).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-                String voiceCode = preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE);
-                voiceCode = position + voiceCode.substring(1);
-                preferences.edit().putString(Constant.VOICE_CODE, voiceCode).apply();
+                StringBuilder voiceCode = new StringBuilder(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE));
+                voiceCode.setCharAt(0, (char) (position + '0'));
+                Log.i("biky", "voice code after setting " + voiceCode.toString());
+                preferences.edit().putString(Constant.VOICE_CODE, voiceCode.toString()).apply();
             }
 
             @Override
@@ -246,10 +262,10 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         ((Spinner) findViewById(R.id.voice_code2)).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-                String voiceCode = preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE);
-                voiceCode = voiceCode.substring(0, 1) + position + voiceCode.substring(2);
-                Log.i("biky", "voice code after setting " + voiceCode);
-                preferences.edit().putString(Constant.VOICE_CODE, voiceCode).apply();
+                StringBuilder voiceCode = new StringBuilder(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE));
+                voiceCode.setCharAt(1, (char) (position + '0'));
+                Log.i("biky", "voice code after setting " + voiceCode.toString());
+                preferences.edit().putString(Constant.VOICE_CODE, voiceCode.toString()).apply();
             }
 
             @Override
@@ -261,10 +277,10 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         ((Spinner) findViewById(R.id.voice_code3)).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-                String voiceCode = preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE);
-                voiceCode = voiceCode.substring(0, 2) + position + voiceCode.substring(3);
-                Log.i("biky", "voice code after setting " + voiceCode);
-                preferences.edit().putString(Constant.VOICE_CODE, voiceCode).apply();
+                StringBuilder voiceCode = new StringBuilder(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE));
+                voiceCode.setCharAt(2, (char) (position + '0'));
+                Log.i("biky", "voice code after setting " + voiceCode.toString());
+                preferences.edit().putString(Constant.VOICE_CODE, voiceCode.toString()).apply();
             }
 
             @Override
@@ -276,10 +292,10 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         ((Spinner) findViewById(R.id.voice_code4)).setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
-                String voiceCode = preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE);
-                voiceCode = voiceCode.substring(0, 3) + position;
-                Log.i("biky", "voice code after setting " + voiceCode);
-                preferences.edit().putString(Constant.VOICE_CODE, voiceCode).apply();
+                StringBuilder voiceCode = new StringBuilder(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE));
+                voiceCode.setCharAt(3, (char) (position + '0'));
+                Log.i("biky", "voice code after setting " + voiceCode.toString());
+                preferences.edit().putString(Constant.VOICE_CODE, voiceCode.toString()).apply();
             }
 
             @Override
@@ -359,27 +375,28 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             }
         });
 
+        //pre setup
         ((Switch) findViewById(R.id.vol_up_switch))
-                .setCheckedImmediately(preferences.getBoolean(Constant.VOLUME_UP_ENABLED, false));
+                .setCheckedImmediately(preferences.getBoolean(Constant.VOLUME_UP_ENABLED, true));
 
         ((Spinner) findViewById(R.id.vol_up_time_spinner)).setSelection(preferences.getInt(Constant.VOLUME_UP_TIME_INDEX, 1));
 
         ((Switch) findViewById(R.id.voice_code_switch))
-                .setCheckedImmediately(preferences.getBoolean(Constant.VOICE_ENABLED, false));
+                .setCheckedImmediately(preferences.getBoolean(Constant.VOICE_ENABLED, true));
 
-        ((Spinner) findViewById(R.id.voice_code1)).setSelection(Integer.parseInt(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).substring(0,1)));
-        ((Spinner) findViewById(R.id.voice_code2)).setSelection(Integer.parseInt(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).substring(1,1)));
-        ((Spinner) findViewById(R.id.voice_code3)).setSelection(Integer.parseInt(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).substring(2,1)));
-        ((Spinner) findViewById(R.id.voice_code4)).setSelection(Integer.parseInt(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).substring(3,1)));
+        ((Spinner) findViewById(R.id.voice_code1)).setSelection(Integer.parseInt(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).substring(0, 1)));
+        ((Spinner) findViewById(R.id.voice_code2)).setSelection(Integer.parseInt(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).substring(1, 2)));
+        ((Spinner) findViewById(R.id.voice_code3)).setSelection(Integer.parseInt(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).substring(2, 3)));
+        ((Spinner) findViewById(R.id.voice_code4)).setSelection(Integer.parseInt(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).substring(3, 4)));
 
         ((Switch) findViewById(R.id.send_message_switch))
-                .setCheckedImmediately(preferences.getBoolean(Constant.TEXT_MESSAGING_ENABLED, false));
+                .setCheckedImmediately(preferences.getBoolean(Constant.TEXT_MESSAGING_ENABLED, true));
 
         ((Switch) findViewById(R.id.call_switch))
                 .setCheckedImmediately(preferences.getBoolean(Constant.CALL_ENABLED, false));
 
         ((Switch) findViewById(R.id.vol_down_switch))
-                .setCheckedImmediately(preferences.getBoolean(Constant.VOLUME_DOWN_ENABLED, false));
+                .setCheckedImmediately(preferences.getBoolean(Constant.VOLUME_DOWN_ENABLED, true));
 
         ((Spinner) findViewById(R.id.vol_down_time_spinner)).setSelection(preferences.getInt(Constant.VOLUME_DOWN_TIME_INDEX, 1));
 
@@ -387,7 +404,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 .setCheckedImmediately(preferences.getBoolean(Constant.TAKE_PHOTO_FRONT_CAM, false));
 
         ((Switch) findViewById(R.id.backcam_switch))
-                .setCheckedImmediately(preferences.getBoolean(Constant.TAKE_PHOTO_BACK_CAM, false));
+                .setCheckedImmediately(preferences.getBoolean(Constant.TAKE_PHOTO_BACK_CAM, true));
 
         ((Switch) findViewById(R.id.video_switch))
                 .setCheckedImmediately(preferences.getBoolean(Constant.TAKE_VIDEO, false));
@@ -532,30 +549,34 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                     }
                 });
             }
-        } else if (reqCode == Constant.SETTING_COMPLETE && resultCode == RESULT_OK) {
-            SharedPreferences.Editor editor = preferences.edit();
-            editor.putBoolean(Constant.VIBRATE, data.getBooleanExtra(Constant.VIBRATE, true));
-            editor.putString(Constant.PANIC_TEXT,data.getStringExtra(Constant.PANIC_TEXT));
-            editor.putBoolean(Constant.SEND_LOCATION,data.getBooleanExtra(Constant.SEND_LOCATION,true));
-            editor.apply();
         }
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-/*
-        if (requestCode == Constant.PERMISSIONS_REQUEST_RECORD_AUDIO) {
-            if (grantResults.length > 0 && grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, Constant.PERMISSIONS_REQUEST_RECORD_AUDIO);
-            }
-        }else if (requestCode == Constant.PERMISSIONS_REQUEST_READ_CONTACTS){
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CONTACTS}, Constant.PERMISSIONS_REQUEST_READ_CONTACTS);
-            }
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case Constant.PERMISSIONS_POCKET_SPHINX:
+                if (grantResults.length > 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                    ((Switch) findViewById(R.id.voice_code_switch)).setCheckedImmediately(true);
+                }
+                break;
+            case Constant.PERMISSIONS_REQUEST_READ_CONTACTS_FOR_TEXT_MSG:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    addContactForTxtMsg();
+                }
+                break;
+            case Constant.PERMISSIONS_REQUEST_READ_CONTACTS_FOR_CALL:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    addContactForCall();
+                }
+                break;
+            case Constant.PERMISSIONS_VIBRATE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    preferences.edit().putBoolean(Constant.VIBRATE, true).apply();
+                }
+                break;
         }
-        */
+
     }
 
     public void speakCode(View v) {
@@ -646,8 +667,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             case R.id.setting:
                 Intent i = new Intent(this, Setting.class);
                 i.putExtra(Constant.VIBRATE, preferences.getBoolean(Constant.VIBRATE, true));
-                i.putExtra(Constant.PANIC_TEXT,preferences.getString(Constant.PANIC_TEXT,Constant.DEFAULT_PANIC_TEXT));
-                i.putExtra(Constant.SEND_LOCATION,preferences.getBoolean(Constant.SEND_LOCATION,true));
+                i.putExtra(Constant.PANIC_TEXT, preferences.getString(Constant.PANIC_TEXT, Constant.DEFAULT_PANIC_TEXT));
+                i.putExtra(Constant.SEND_LOCATION, preferences.getBoolean(Constant.SEND_LOCATION, true));
                 startActivityForResult(i, Constant.SETTING_COMPLETE);
                 return true;
             case R.id.gallery:

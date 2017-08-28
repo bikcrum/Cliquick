@@ -5,12 +5,16 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
+import android.graphics.Camera;
+import android.hardware.camera2.CameraManager;
 import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
 import android.os.Vibrator;
 import android.util.Log;
+import android.view.SurfaceView;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,15 +34,21 @@ public class MyService extends Service implements RecognitionListener {
     private static final String KWS_SEARCH = "thisdoesntwork";
     private SpeechRecognizer recognizer = null;
 
+    private SharedPreferences preferences;
+
     public MyService() {
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("biky", "on start command");
+
+        preferences = getSharedPreferences(Constant.PREFERENCE_NAME,MODE_PRIVATE);
+
         mediaPlayer = MediaPlayer.create(this, R.raw.cliquick);
         mediaPlayer.setLooping(true);
         mediaPlayer.start();
+
         IntentFilter filter = new IntentFilter();
         filter.addAction("android.media.VOLUME_CHANGED_ACTION");
         filter.addAction(Intent.ACTION_SCREEN_OFF);
@@ -46,6 +56,7 @@ public class MyService extends Service implements RecognitionListener {
         registerReceiver(broadcastReceiver, filter);
 
         startRecognizerSetup();
+
         return START_STICKY;
     }
 

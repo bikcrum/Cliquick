@@ -31,8 +31,7 @@ class Constant {
     static final String VIBRATE = "vibrate";
     static final String PANIC_TEXT = "panic_text";
     static final String SEND_LOCATION = "send_location";
-    static final String SEND_LOCATION_FREQ = "send_location_frequency";
-    static final String SEND_LOCATION_FREQ_VALUE = "send_location_frequency_value";
+    static final String SEND_LOCATION_FREQUENCY = "send_location_frequency";
 
     //database setting
     static final String TABLE_NAME = "setting";
@@ -44,12 +43,15 @@ class Constant {
     static final int PICK_CONTACT_FOR_CALL = 1;
     static final int SETTING_COMPLETE = 100;
     static final int PERMISSIONS_REQUEST_RECORD_AUDIO = 1;
-    static final int PERMISSIONS_REQUEST_READ_CONTACTS = 2;
-    static final int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 3;
+    static final int PERMISSIONS_REQUEST_READ_CONTACTS_FOR_TEXT_MSG = 2;
+    static final int PERMISSIONS_REQUEST_READ_CONTACTS_FOR_CALL= 3;
+    static final int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 4;
+    static final int PERMISSIONS_VIBRATE = 5;
+    static final int PERMISSIONS_POCKET_SPHINX = 6;
     static final String TIME_PICKER = "time picker";
 
     //defaults
-    static final String DEFAULT_PANIC_TEXT = "Help! I'm in trouble";
+    static final String DEFAULT_PANIC_TEXT = "Help me! I'm in trouble";
     static final String DEFAULT_VOICE_CODE = "5115";
     static final String DEFAULT_START_TIME = "9:00";         // 9 AM
     static  final String DEFAULT_END_TIME = "22:00";   // 10 PM

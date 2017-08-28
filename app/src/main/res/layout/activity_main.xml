@@ -5,16 +5,13 @@
     android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:scrollbars="none"
     tools:context="com.bikrampandit.cliquick.MainActivity">
-
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
-
 
         <android.support.v7.widget.CardView
             android:layout_width="match_parent"
@@ -122,8 +119,8 @@
 
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_marginBottom="10dp"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp">
 
                     <ImageButton
                         android:id="@+id/speak_btn"
@@ -187,11 +184,11 @@
                 </RelativeLayout>
 
                 <TextView
+                    android:id="@+id/mic_note"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/mic_note"
-                    android:textSize="14sp"
-                    android:text="Note: Other application won't be able to use mic while this feature is on"/>
+                    android:text="Note: Other application won't be able to use mic while this feature is on, still you can make a call"
+                    android:textSize="14sp" />
 
 
             </LinearLayout>
@@ -267,9 +264,8 @@
                     app:tag_clickable="true"
                     app:tag_enable_cross="true"
                     app:tag_max_length="50"
-                    app:tag_theme="pure_teal"
+                    app:tag_theme="pure_cyan"
                     app:vertical_interval="10dp" />
-
 
                 <View
                     android:layout_width="match_parent"
@@ -327,7 +323,7 @@
                     app:tag_clickable="true"
                     app:tag_enable_cross="true"
                     app:tag_max_length="50"
-                    app:tag_theme="pure_teal"
+                    app:tag_theme="pure_cyan"
                     app:vertical_interval="10dp" />
             </LinearLayout>
 
@@ -541,7 +537,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="10dp"
-                android:text="Note: This app is made to work even when screen is off or device is locked."
+                android:text="Note: This app works in background, even when screen is off or device is locked."
                 android:textSize="15sp" />
         </android.support.v7.widget.CardView>
 
