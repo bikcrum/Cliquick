@@ -49,11 +49,11 @@ public class MyService extends Service implements RecognitionListener {
 
         IntentFilter filter = new IntentFilter();
         filter.addAction("android.media.VOLUME_CHANGED_ACTION");
-        filter.addAction(Intent.ACTION_SCREEN_OFF);
-        filter.addAction(Intent.ACTION_SCREEN_ON);
         registerReceiver(broadcastReceiver, filter);
 
-        startRecognizerSetup();
+        if (preferences.getBoolean(Constant.VOICE_ENABLED, true)) {
+            startRecognizerSetup();
+        }
 
         return START_STICKY;
     }
@@ -88,15 +88,10 @@ public class MyService extends Service implements RecognitionListener {
     long prevMillis = System.currentTimeMillis();
     long totalTime0 = 0;
     long totalTime15 = 0;
-    BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
+
+    public BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
-                //    mediaPlayer.start();
-            } else if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
-                //   mediaPlayer.stop();
-            }
-            //Log.i("biky", intent.getAction());
             if ("android.media.VOLUME_CHANGED_ACTION".equals(intent.getAction())) {
                 Object vol = intent.getExtras().get("android.media.EXTRA_VOLUME_STREAM_VALUE");
                 int volume = 1;
@@ -174,28 +169,19 @@ public class MyService extends Service implements RecognitionListener {
         if (!preferences.getBoolean(Constant.VOLUME_DOWN_ENABLED, true)) {
             return;
         }
-        if (preferences.getBoolean(Constant.TAKE_PHOTO_BACK_CAM, true)) {
-            ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(200);
-            if (!isMyServiceRunning(ImageCaptureServiceB.class)) {
-                Intent i = new Intent(this, ImageCaptureServiceB.class);
+        if (!isMyServiceRunning(ImageCaptureService.class)) {
+            if (preferences.getBoolean(Constant.TAKE_PHOTO_BACK_CAM, true) ||
+                    preferences.getBoolean(Constant.TAKE_PHOTO_FRONT_CAM, true)) {
+                ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(200);
+
+                Intent i = new Intent(this, ImageCaptureService.class);
+                i.putExtra(Constant.TAKE_PHOTO_BACK_CAM, preferences.getBoolean(Constant.TAKE_PHOTO_BACK_CAM, true));
+                i.putExtra(Constant.TAKE_PHOTO_FRONT_CAM, preferences.getBoolean(Constant.TAKE_PHOTO_FRONT_CAM, false));
                 Log.i("biky", "image capture service back cam called");
                 startService(i);
-            } else {
-                Log.i("biky", "image capture service back cam already running");
             }
-        }
-        if (preferences.getBoolean(Constant.TAKE_PHOTO_FRONT_CAM, false)) {
-            if (!isMyServiceRunning(ImageCaptureServiceF.class)) {
-                // if already vibrated then no need to vibrate again
-                if (!preferences.getBoolean(Constant.TAKE_PHOTO_BACK_CAM, true)) {
-                    ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(200);
-                }
-                Intent i = new Intent(this, ImageCaptureServiceF.class);
-                Log.i("biky", "image capture service front cam called");
-                startService(i);
-            } else {
-                Log.i("biky", "image capture service front cam already running");
-            }
+        } else {
+            Log.i("biky", "image capture service back cam already running");
         }
     }
 
@@ -215,13 +201,26 @@ public class MyService extends Service implements RecognitionListener {
         mediaPlayer.stop();
         mediaPlayer.release();
         unregisterReceiver(broadcastReceiver);
+        stopRecognizing();
+    }
+
+    void stopRecognizing() {
         if (recognizer != null) {
+            Log.i("biky","stopping recognizer");
+            recognizer.stop();
             recognizer.cancel();
             recognizer.shutdown();
+            recognizer = null;
         }
     }
 
     void startRecognizerSetup() {
+        if (recognizer != null) {
+            Log.i("biky", "Recognition already running");
+            return; //already running
+        }
+        Log.i("biky","starting recognizer");
+
         new AsyncTask<Void, Void, Exception>() {
             @Override
             protected Exception doInBackground(Void... params) {
@@ -250,7 +249,6 @@ public class MyService extends Service implements RecognitionListener {
     private void setupRecognizer(File assetsDir) throws IOException {
         // The recognizer can be configured to perform multiple searches
         // of different kind and switch between them
-        if (recognizer != null) return; //already setup
 
         recognizer = defaultSetup()
                 .setAcousticModel(new File(assetsDir, "en-us-ptm"))

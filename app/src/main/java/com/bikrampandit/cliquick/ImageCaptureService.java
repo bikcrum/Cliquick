@@ -8,6 +8,7 @@ package com.bikrampandit.cliquick;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -36,10 +37,11 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class ImageCaptureServiceF extends HiddenCameraService {
+public class ImageCaptureService extends HiddenCameraService {
 
 
     private MediaPlayer cameraSound;
+    private Intent intent;
 
     @Nullable
     @Override
@@ -49,7 +51,8 @@ public class ImageCaptureServiceF extends HiddenCameraService {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.i("biky", "image service front cam. on start command");
+        Log.i("biky", "image service  cam. on start command");
+        this.intent = intent;
 
         cameraSound = MediaPlayer.create(this, R.raw.camera_shutter);
 
@@ -59,40 +62,52 @@ public class ImageCaptureServiceF extends HiddenCameraService {
                 File imageFile = createImageFile();
                 CameraConfig cameraConfig = new CameraConfig()
                         .getBuilder(this)
-                        .setCameraFacing(CameraFacing.FRONT_FACING_CAMERA)
-                        .setCameraResolution(CameraResolution.HIGH_RESOLUTION)
+                        .setCameraFacing(intent.getBooleanExtra(Constant.TAKE_PHOTO_BACK_CAM, true) ?
+                                CameraFacing.REAR_FACING_CAMERA : CameraFacing.FRONT_FACING_CAMERA)
+                        .setCameraResolution(CameraResolution.MEDIUM_RESOLUTION)
                         .setImageFormat(CameraImageFormat.FORMAT_JPEG)
                         .setImageFile(imageFile)
-                        .setImageRotation(CameraRotation.ROTATION_90)
+                        .setImageRotation(intent.getBooleanExtra(Constant.TAKE_PHOTO_BACK_CAM, true) ?
+                                CameraRotation.ROTATION_90 : CameraRotation.ROTATION_270)
                         .build();
 
                 startCamera(cameraConfig);
 
-                new android.os.Handler().postDelayed(new Runnable() {
+                new android.os.Handler().post(new Runnable() {
                     @Override
                     public void run() {
                         takePicture();
                     }
-                },2000);
+                });
             } else {
                 //Open settings to grant permission for "Draw other apps".
                 HiddenCameraUtils.openDrawOverPermissionSetting(this);
             }
         } else {
             //TODO Ask your parent activity for providing runtime permission
-            Log.i("biky", "image capture serive front cam. Camera permission not available");
+            Log.i("biky", "image capture serive  cam. Camera permission not available");
         }
         return START_NOT_STICKY;
     }
 
     private File createImageFile() {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ENGLISH).format(new Date());
-        String imageFileName = "CQ" + timeStamp + ".jpg";
-        File directory = new File("/storage/emulated/0/Cliquick");
+        String imageFileName = "CQ" + timeStamp;
+        File directory = new File(Constant.IMAGE_PATH);
         if (!directory.exists()) {
             directory.mkdirs();
         }
-        return new File(directory, imageFileName);
+        File imageFile = new File(directory, imageFileName + "." + Constant.IMAGE_FILE_EXTENSION);
+        int i = 1;
+        while (imageFile.exists()) {
+            imageFile = new File(directory, imageFileName + "(" + i + ")." + Constant.IMAGE_FILE_EXTENSION);
+            i++;
+            //ensure it doesnot repeat forever
+            if(i > 10000){
+                break;
+            }
+        }
+        return imageFile;
     }
 
     @Override
@@ -108,8 +123,22 @@ public class ImageCaptureServiceF extends HiddenCameraService {
                 am.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
                 0);
         cameraSound.start();
-        Log.i("biky", "image captured by front cam " + imageFile.length() + ", image absolute path = " + imageFile.getAbsolutePath());
+        Log.i("biky", "image captured by  cam " + imageFile.length() + ", image absolute path = " + imageFile.getAbsolutePath());
+
+        Intent j = new Intent();
+        j.setAction(Constant.NEW_IMAGE_CAPTURED);
+        j.putExtra(Constant.IMAGE_PATH,imageFile.getAbsolutePath());
+        sendBroadcast(j);
+
         stopSelf();
+        //start service again if image needs to capture by both camera
+        if (intent.getBooleanExtra(Constant.TAKE_PHOTO_BACK_CAM, true) &&
+                intent.getBooleanExtra(Constant.TAKE_PHOTO_FRONT_CAM, false)) {
+            Intent i = new Intent(this, ImageCaptureService.class);
+            i.putExtra(Constant.TAKE_PHOTO_BACK_CAM, false);
+            i.putExtra(Constant.TAKE_PHOTO_FRONT_CAM, true);
+            startService(i);
+        }
     }
 
     @Override
@@ -135,7 +164,7 @@ public class ImageCaptureServiceF extends HiddenCameraService {
                 HiddenCameraUtils.openDrawOverPermissionSetting(this);
                 break;
             case CameraError.ERROR_DOES_NOT_HAVE_FRONT_CAMERA:
-                Log.i("biky", "Your device does not have front camera.");
+                Log.i("biky", "Your device does not have  camera.");
                 break;
         }
 
@@ -145,7 +174,7 @@ public class ImageCaptureServiceF extends HiddenCameraService {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.i("biky", "on destroy. image capture service front cam");
+        Log.i("biky", "on destroy. image capture service  cam");
     }
 
 

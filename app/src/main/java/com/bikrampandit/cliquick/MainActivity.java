@@ -2,6 +2,7 @@ package com.bikrampandit.cliquick;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
@@ -36,8 +37,12 @@ import android.widget.Toast;
 
 import android.widget.Spinner;
 
+import com.mzelzoghbi.zgallery.ZGallery;
+import com.mzelzoghbi.zgallery.ZGrid;
+import com.mzelzoghbi.zgallery.entities.ZColor;
 import com.rey.material.widget.Switch;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Set;
@@ -104,20 +109,23 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         }
 
         //camera permission
-        if (preferences.getBoolean(Constant.VOLUME_DOWN_ENABLED, true) && getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
-            if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) !=
-                    PackageManager.PERMISSION_GRANTED
-                    || (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.SYSTEM_ALERT_WINDOW) !=
-                    PackageManager.PERMISSION_GRANTED)) {
+        if(preferences.getBoolean(Constant.VOLUME_DOWN_ENABLED, true)) {
+            if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)){
+                if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) !=
+                        PackageManager.PERMISSION_GRANTED
+                        || (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.SYSTEM_ALERT_WINDOW) !=
+                        PackageManager.PERMISSION_GRANTED)) {
+
+                    ((Switch) findViewById(R.id.vol_down_switch)).setCheckedImmediately(false);
+                    preferences.edit().putBoolean(Constant.VOLUME_DOWN_ENABLED, false).apply();
+
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.SYSTEM_ALERT_WINDOW}, Constant.PERMISSION_CAPTURE_IMAGE_IN_BACKGROUND);
+                }
+            }else{
                 ((Switch) findViewById(R.id.vol_down_switch)).setCheckedImmediately(false);
                 preferences.edit().putBoolean(Constant.VOLUME_DOWN_ENABLED, false).apply();
-
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.SYSTEM_ALERT_WINDOW}, Constant.PERMISSION_CAPTURE_IMAGE_IN_BACKGROUND);
+                Toast.makeText(this, "Your device doesn't have a camera", Toast.LENGTH_SHORT).show();
             }
-        } else {
-            ((Switch) findViewById(R.id.vol_down_switch)).setCheckedImmediately(false);
-            preferences.edit().putBoolean(Constant.VOLUME_DOWN_ENABLED, false).apply();
-            Toast.makeText(this, "Your device doesn't have a camera", Toast.LENGTH_SHORT).show();
         }
         //camera permission
 
@@ -250,7 +258,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE}, Constant.PERMISSIONS_POCKET_SPHINX);
                         return;
                     }
+                    if(myService!= null) myService.startRecognizerSetup();
                 }
+                if(myService!= null) myService.stopRecognizing();
                 findViewById(R.id.voice_code_switch_text).setEnabled(checked);
                 findViewById(R.id.voice_code1).setEnabled(checked);
                 findViewById(R.id.voice_code2).setEnabled(checked);
@@ -707,6 +717,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 startActivityForResult(i, Constant.SETTING_COMPLETE);
                 return true;
             case R.id.gallery:
+                startActivity(new Intent(this,Gallery.class));
+
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

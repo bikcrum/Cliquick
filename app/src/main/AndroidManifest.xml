@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.bikrampandit.cliquick">
 
-    <uses-sdk tools:overrideLibrary="com.androidhiddencamera, com.google.android.gms.ads.impl, com.google.android.gms.ads, com.google.android.gms.clearcut, com.google.android.gms.base, com.google.android.gms.tasks, com.google.android.gms.gass, com.google.android.gms, edu.cmu.pocketsphinx, com.chaos.view" />
+    <uses-sdk tools:overrideLibrary="com.mzelzoghbi.zgallery, com.androidhiddencamera, com.google.android.gms.ads.impl, com.google.android.gms.ads, com.google.android.gms.clearcut, com.google.android.gms.base, com.google.android.gms.tasks, com.google.android.gms.gass, com.google.android.gms, edu.cmu.pocketsphinx, com.chaos.view" />
 
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
@@ -15,7 +15,6 @@
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
-
 
     <application
         android:allowBackup="true"
@@ -37,20 +36,20 @@
             android:name=".MyService"
             android:enabled="true"
             android:exported="true" />
-
         <service
-            android:name=".ImageCaptureServiceB"
-            android:enabled="true"
-            android:exported="true" />
-
-        <service
-            android:name=".ImageCaptureServiceF"
+            android:name=".ImageCaptureService"
             android:enabled="true"
             android:exported="true" />
 
         <activity
             android:name=".Setting"
             android:label="Setting"
+            android:parentActivityName=".MainActivity">
+
+        </activity>
+        <activity
+            android:name=".Gallery"
+            android:label="Gallery"
             android:parentActivityName=".MainActivity">
 
         </activity>
