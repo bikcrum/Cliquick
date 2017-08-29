@@ -102,6 +102,25 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             preferences.edit().putBoolean(Constant.VIBRATE, false).apply();
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.VIBRATE}, Constant.PERMISSIONS_VIBRATE);
         }
+
+        //camera permission
+        if (preferences.getBoolean(Constant.VOLUME_DOWN_ENABLED, true) && getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+            if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) !=
+                    PackageManager.PERMISSION_GRANTED
+                    || (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.SYSTEM_ALERT_WINDOW) !=
+                    PackageManager.PERMISSION_GRANTED)) {
+                ((Switch) findViewById(R.id.vol_down_switch)).setCheckedImmediately(false);
+                preferences.edit().putBoolean(Constant.VOLUME_DOWN_ENABLED, false).apply();
+
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.SYSTEM_ALERT_WINDOW}, Constant.PERMISSION_CAPTURE_IMAGE_IN_BACKGROUND);
+            }
+        } else {
+            ((Switch) findViewById(R.id.vol_down_switch)).setCheckedImmediately(false);
+            preferences.edit().putBoolean(Constant.VOLUME_DOWN_ENABLED, false).apply();
+            Toast.makeText(this, "Your device doesn't have a camera", Toast.LENGTH_SHORT).show();
+        }
+        //camera permission
+
         /*
         //write external storage permission
         permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -329,6 +348,17 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         ((Switch) findViewById(R.id.vol_down_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
+                if (checked) {
+                    if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) !=
+                            PackageManager.PERMISSION_GRANTED
+                            || (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.SYSTEM_ALERT_WINDOW) !=
+                            PackageManager.PERMISSION_GRANTED)) {
+
+                        view.setCheckedImmediately(false);
+                        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA, Manifest.permission.SYSTEM_ALERT_WINDOW}, Constant.PERMISSION_CAPTURE_IMAGE_IN_BACKGROUND);
+                        return;
+                    }
+                }
                 findViewById(R.id.vol_down_text).setEnabled(checked);
                 findViewById(R.id.vol_down_text1).setEnabled(checked);
                 findViewById(R.id.vol_down_time_spinner).setEnabled(checked);
@@ -573,6 +603,11 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             case Constant.PERMISSIONS_VIBRATE:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     preferences.edit().putBoolean(Constant.VIBRATE, true).apply();
+                }
+                break;
+            case Constant.PERMISSION_CAPTURE_IMAGE_IN_BACKGROUND:
+                if (grantResults.length > 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                    ((Switch) findViewById(R.id.vol_down_switch)).setCheckedImmediately(true);
                 }
                 break;
         }

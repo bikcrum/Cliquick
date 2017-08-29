@@ -48,6 +48,8 @@ class Constant {
     static final int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 4;
     static final int PERMISSIONS_VIBRATE = 5;
     static final int PERMISSIONS_POCKET_SPHINX = 6;
+    static final int PERMISSIONS_CAMERA = 7;
+    static final int PERMISSION_CAPTURE_IMAGE_IN_BACKGROUND = 8;
     static final String TIME_PICKER = "time picker";
 
     //defaults
@@ -56,5 +58,5 @@ class Constant {
     static final String DEFAULT_START_TIME = "9:00";         // 9 AM
     static  final String DEFAULT_END_TIME = "22:00";   // 10 PM
     static  final String DEFAULT_WEEK = "1111111";
-
+    static final String PREV_VOLUME = "prev_vol";
 }
