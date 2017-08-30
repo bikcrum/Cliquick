@@ -53,7 +53,7 @@ class Constant {
     static final String TIME_PICKER = "time picker";
     static final String IMAGE_PATH = "/storage/emulated/0/Pictures/Cliquick";
     static final String VOICE_SWITCH_CHANGED = "voice_switch_changed";
-    static final String IMAGE_FILE_EXTENSION = "jpg";
+    static final String IMAGE_FILE_EXTENSION = ".jpg";
     static final String NEW_IMAGE_CAPTURED = "new image captured";
 
     //defaults

@@ -97,10 +97,10 @@ public class ImageCaptureService extends HiddenCameraService {
         if (!directory.exists()) {
             directory.mkdirs();
         }
-        File imageFile = new File(directory, imageFileName + "." + Constant.IMAGE_FILE_EXTENSION);
+        File imageFile = new File(directory, imageFileName + Constant.IMAGE_FILE_EXTENSION);
         int i = 1;
         while (imageFile.exists()) {
-            imageFile = new File(directory, imageFileName + "(" + i + ")." + Constant.IMAGE_FILE_EXTENSION);
+            imageFile = new File(directory, imageFileName + "(" + i + ")" + Constant.IMAGE_FILE_EXTENSION);
             i++;
             //ensure it doesnot repeat forever
             if(i > 10000){

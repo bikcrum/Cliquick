@@ -7,6 +7,7 @@ import android.content.IntentFilter;
 import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.PopupMenu;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
@@ -21,9 +22,11 @@ import android.widget.GridView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 
 public class Gallery extends AppCompatActivity {
     private GridView gridView;
@@ -45,17 +48,28 @@ public class Gallery extends AppCompatActivity {
 
         File directory = new File(Constant.IMAGE_PATH);
         if (directory.isDirectory()) {
-            File[] files = directory.listFiles();
-            for (int i = files.length - 1; i >= 0; i--) {
-                File file = files[i];
-                //checking valid image file
-                if (file.getName().substring(file.getName().lastIndexOf('.') + 1).equals(Constant.IMAGE_FILE_EXTENSION)) {
-                    images.add(file);
+            File[] files = directory.listFiles(new FileFilter() {
+                @Override
+                public boolean accept(File file) {
+                    //checking if the file is image file
+                    return file.getName().endsWith(Constant.IMAGE_FILE_EXTENSION);
                 }
+            });
+            if (files != null && files.length > 0) {
+                //sort in descending order
+                Arrays.sort(files, new Comparator<File>() {
+                    @Override
+                    public int compare(File f1, File f2) {
+                        return f2.getName().compareTo(f1.getName());
+                    }
+                });
+                images = new ArrayList<>(Arrays.asList(files));
+            } else {
+                Toast.makeText(Gallery.this, "No image found", Toast.LENGTH_SHORT).show();
+                finish();
             }
-        }
-        if (images.isEmpty()) {
-            Toast.makeText(Gallery.this, "No images found", Toast.LENGTH_SHORT).show();
+        }else {
+            Toast.makeText(Gallery.this, "No image found", Toast.LENGTH_SHORT).show();
             finish();
         }
         if (android.os.Build.VERSION.SDK_INT >= 11) {
@@ -128,7 +142,27 @@ public class Gallery extends AppCompatActivity {
                 }
             });
         } else {
-            //TODO
+            gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int position, long id) {
+                    PopupMenu popupMenu = new PopupMenu(Gallery.this,view);
+                    popupMenu.getMenuInflater().inflate(R.menu.grid_menu,popupMenu.getMenu());
+                    popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                        @Override
+                        public boolean onMenuItemClick(MenuItem item) {
+                            switch (item.getItemId()){
+                                case R.id.delete:
+                                    File selecteditem = adapter.getItem(position);
+                                    adapter.remove(selecteditem);
+                                    return true;
+                                default:
+                                    return false;
+                            }
+                        }
+                    });
+                    return true;
+                }
+            });
         }
         registerReceiver(receiver, new IntentFilter(Constant.NEW_IMAGE_CAPTURED));
     }
@@ -139,8 +173,11 @@ public class Gallery extends AppCompatActivity {
             if (Constant.NEW_IMAGE_CAPTURED.equals(intent.getAction())) {
                 Log.i("biky", "new image captured");
                 File file = new File(intent.getStringExtra(Constant.IMAGE_PATH));
-                images.add(0, file);
-                adapter.notifyDataSetChanged();
+                //if the file is valid image file
+                if(file.getName().endsWith(Constant.IMAGE_FILE_EXTENSION)) {
+                    images.add(0, file);
+                    adapter.notifyDataSetChanged();
+                }
             }
         }
     };
