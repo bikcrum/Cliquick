@@ -4,7 +4,6 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -203,21 +202,12 @@ public class Setting extends AppCompatActivity {
             }
         });
 
-        ((Switch) findViewById(R.id.vibrate)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
+        ((Switch) findViewById(R.id.shutter_sound)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
-                if (checked) {
-                    int permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.VIBRATE);
-                    if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-                        preferences.edit().putBoolean(Constant.VIBRATE, false).apply();
-                        view.setCheckedImmediately(false);
-                        ActivityCompat.requestPermissions(Setting.this, new String[]{Manifest.permission.VIBRATE}, Constant.PERMISSIONS_VIBRATE);
-                        return;
-                    }
-                }
-                findViewById(R.id.vibrate_text).setEnabled(checked);
-                findViewById(R.id.vibrate_text1).setEnabled(checked);
-                preferences.edit().putBoolean(Constant.VIBRATE, checked).apply();
+                findViewById(R.id.shutter_sound_text).setEnabled(checked);
+                findViewById(R.id.shutter_sound_text1).setEnabled(checked);
+                preferences.edit().putBoolean(Constant.SHUTTER_SOUND, checked).apply();
             }
 
         });
@@ -293,7 +283,7 @@ public class Setting extends AppCompatActivity {
         ((CheckBox) findViewById(R.id.w6)).setChecked(Integer.parseInt(preferences.getString(Constant.WEEK_ENABLE, Constant.DEFAULT_WEEK).substring(5, 6)) != 0);
         ((CheckBox) findViewById(R.id.w7)).setChecked(Integer.parseInt(preferences.getString(Constant.WEEK_ENABLE, Constant.DEFAULT_WEEK).substring(6, 7)) != 0);
 
-        ((Switch) findViewById(R.id.vibrate)).setChecked(preferences.getBoolean(Constant.VIBRATE, true));
+        ((Switch) findViewById(R.id.shutter_sound)).setChecked(preferences.getBoolean(Constant.SHUTTER_SOUND, false));
         ((TextView) findViewById(R.id.panic_text_view)).setText(preferences.getString(Constant.PANIC_TEXT, Constant.DEFAULT_PANIC_TEXT) + " (Tap to change)");
         ((CheckBox) findViewById(R.id.send_location)).setChecked(preferences.getBoolean(Constant.SEND_LOCATION, true));
         findViewById(R.id.send_location_text).setEnabled(preferences.getBoolean(Constant.SEND_LOCATION, true));
@@ -301,15 +291,4 @@ public class Setting extends AppCompatActivity {
         ((Spinner) findViewById(R.id.freqSpinner)).setSelection(preferences.getInt(Constant.SEND_LOCATION_FREQUENCY, 1));
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        switch (requestCode) {
-            case Constant.PERMISSIONS_VIBRATE:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    ((Switch) findViewById(R.id.vibrate)).setCheckedImmediately(true);
-                    preferences.edit().putBoolean(Constant.VIBRATE, true).apply();
-                }
-                break;
-        }
-    }
 }

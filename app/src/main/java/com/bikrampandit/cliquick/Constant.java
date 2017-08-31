@@ -28,7 +28,7 @@ class Constant {
     static final String END_TIME = "end_time";
     static final String REPEAT_EVERY_WEEK = "repeat_every_week";
     static final String WEEK_ENABLE = "weeks";
-    static final String VIBRATE = "vibrate";
+    static final String SHUTTER_SOUND = "shutter_sound";
     static final String PANIC_TEXT = "panic_text";
     static final String SEND_LOCATION = "send_location";
     static final String SEND_LOCATION_FREQUENCY = "send_location_frequency";
@@ -68,4 +68,5 @@ class Constant {
     static final String DEFAULT_END_TIME = "22:00";   // 10 PM
     static final String DEFAULT_WEEK = "1111111";
     static final String PREV_VOLUME = "prev_vol";
+    public static final long[] VIBRATE_PATTERN  = {0,20,100,20};;
 }

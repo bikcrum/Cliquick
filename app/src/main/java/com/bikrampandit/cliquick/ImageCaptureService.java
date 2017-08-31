@@ -16,6 +16,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Environment;
 import android.os.IBinder;
+import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -103,7 +104,7 @@ public class ImageCaptureService extends HiddenCameraService {
             imageFile = new File(directory, imageFileName + "(" + i + ")" + Constant.IMAGE_FILE_EXTENSION);
             i++;
             //ensure it doesnot repeat forever
-            if(i > 10000){
+            if (i > 10000) {
                 break;
             }
         }
@@ -116,20 +117,22 @@ public class ImageCaptureService extends HiddenCameraService {
         options.inPreferredConfig = Bitmap.Config.RGB_565;
         Bitmap bitmap = BitmapFactory.decodeFile(imageFile.getAbsolutePath(), options);
         //Do something with the bitmap
-        AudioManager am =
-                (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-        am.setStreamVolume(
-                AudioManager.STREAM_MUSIC,
-                am.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
-                0);
-        cameraSound.start();
+        AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        am.setStreamVolume(AudioManager.STREAM_MUSIC, am.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 0);
+
+        if (getSharedPreferences(Constant.PREFERENCE_NAME, MODE_PRIVATE).getBoolean(Constant.SHUTTER_SOUND, false)) {
+            cameraSound.start();
+        }
+
         Log.i("biky", "image captured by  cam " + imageFile.length() + ", image absolute path = " + imageFile.getAbsolutePath());
 
         Intent j = new Intent();
         j.setAction(Constant.NEW_IMAGE_CAPTURED);
-        j.putExtra(Constant.IMAGE_PATH,imageFile.getAbsolutePath());
+        j.putExtra(Constant.IMAGE_PATH, imageFile.getAbsolutePath());
         sendBroadcast(j);
 
+        //((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(Constant.VIBRATE_PATTERN,-1);
+        Util.vibrate(this, Constant.VIBRATE_PATTERN, -1);
         stopSelf();
         //start service again if image needs to capture by both camera
         if (intent.getBooleanExtra(Constant.TAKE_PHOTO_BACK_CAM, true) &&

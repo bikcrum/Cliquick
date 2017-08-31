@@ -19,7 +19,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.provider.ContactsContract;
-import android.provider.SyncStateContract;
 import android.speech.tts.TextToSpeech;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -39,17 +38,11 @@ import android.widget.Toast;
 
 import android.widget.Spinner;
 
-import com.mzelzoghbi.zgallery.ZGallery;
-import com.mzelzoghbi.zgallery.ZGrid;
-import com.mzelzoghbi.zgallery.entities.ZColor;
 import com.rey.material.widget.Switch;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Locale;
-import java.util.Set;
 
-import co.lujun.androidtagview.ColorFactory;
 import co.lujun.androidtagview.TagContainerLayout;
 import co.lujun.androidtagview.TagView;
 
@@ -109,8 +102,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
         //vibrate permission
         int permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.VIBRATE);
-        if (preferences.getBoolean(Constant.VIBRATE, true) && permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            preferences.edit().putBoolean(Constant.VIBRATE, false).apply();
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.VIBRATE}, Constant.PERMISSIONS_VIBRATE);
         }
 
@@ -232,6 +224,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.vol_up_text).setEnabled(checked);
                 findViewById(R.id.vol_up_text1).setEnabled(checked);
+                findViewById(R.id.vol_up_text2).setEnabled(checked);
                 findViewById(R.id.vol_up_time_spinner).setEnabled(checked);
 
                 preferences.edit().putBoolean(Constant.VOLUME_UP_ENABLED, checked).apply();
@@ -252,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
         ((Switch) findViewById(R.id.voice_code_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
-            public void onCheckedChanged(Switch view,final boolean checked) {
+            public void onCheckedChanged(Switch view, final boolean checked) {
                 long delay = 0;
                 if (checked) {
                     if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.RECORD_AUDIO) !=
@@ -266,7 +259,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                     }
                     if (myService != null) myService.startRecognizerSetup();
                     delay = 500;
-                }else {
+                } else {
                     if (myService != null) myService.stopRecognizing();
                 }
                 handler.removeCallbacksAndMessages(null);
@@ -279,9 +272,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                         findViewById(R.id.voice_code3).setEnabled(checked);
                         findViewById(R.id.voice_code4).setEnabled(checked);
                         findViewById(R.id.speak_btn).setVisibility(checked ? View.VISIBLE : View.GONE);
-                        findViewById(R.id.mic_note).setVisibility(checked ? View.VISIBLE : View.GONE);
+                        findViewById(R.id.mic_note).setEnabled(checked);
                     }
-                },delay);
+                }, delay);
                 preferences.edit().putBoolean(Constant.VOICE_ENABLED, checked).apply();
             }
         });
@@ -293,7 +286,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 voiceCode.setCharAt(0, (char) (position + '0'));
                 //Log.i("biky", "voice code after setting " + voiceCode.toString());
                 preferences.edit().putString(Constant.VOICE_CODE, voiceCode.toString()).apply();
-                if(myService!= null) myService.updateSearchVoiceCode();
+                if (myService != null) myService.updateSearchVoiceCode();
             }
 
             @Override
@@ -309,7 +302,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 voiceCode.setCharAt(1, (char) (position + '0'));
                 // Log.i("biky", "voice code after setting " + voiceCode.toString());
                 preferences.edit().putString(Constant.VOICE_CODE, voiceCode.toString()).apply();
-                if(myService!= null) myService.updateSearchVoiceCode();
+                if (myService != null) myService.updateSearchVoiceCode();
             }
 
             @Override
@@ -325,7 +318,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 voiceCode.setCharAt(2, (char) (position + '0'));
                 //Log.i("biky", "voice code after setting " + voiceCode.toString());
                 preferences.edit().putString(Constant.VOICE_CODE, voiceCode.toString()).apply();
-                if(myService!= null) myService.updateSearchVoiceCode();
+                if (myService != null) myService.updateSearchVoiceCode();
             }
 
             @Override
@@ -341,7 +334,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 voiceCode.setCharAt(3, (char) (position + '0'));
                 //Log.i("biky", "voice code after setting " + voiceCode.toString());
                 preferences.edit().putString(Constant.VOICE_CODE, voiceCode.toString()).apply();
-                if(myService!= null) myService.updateSearchVoiceCode();
+                if (myService != null) myService.updateSearchVoiceCode();
             }
 
             @Override
@@ -388,6 +381,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 }
                 findViewById(R.id.vol_down_text).setEnabled(checked);
                 findViewById(R.id.vol_down_text1).setEnabled(checked);
+                findViewById(R.id.vol_down_text2).setEnabled(checked);
                 findViewById(R.id.vol_down_time_spinner).setEnabled(checked);
 
                 preferences.edit().putBoolean(Constant.VOLUME_DOWN_ENABLED, checked).apply();
@@ -435,6 +429,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 if (checked) {
                     ((Switch) findViewById(R.id.frontcam_switch)).setChecked(false);
                     ((Switch) findViewById(R.id.backcam_switch)).setChecked(false);
+                } else {
+                    if (myService != null) myService.stopRecordingVideo();
                 }
                 preferences.edit().putBoolean(Constant.TAKE_VIDEO, checked).apply();
             }
@@ -637,7 +633,6 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 break;
             case Constant.PERMISSIONS_VIBRATE:
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    preferences.edit().putBoolean(Constant.VIBRATE, true).apply();
                 }
                 break;
             case Constant.PERMISSION_CAPTURE_IMAGE_IN_BACKGROUND:
@@ -737,10 +732,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         switch (item.getItemId()) {
             case R.id.setting:
                 Intent i = new Intent(this, Setting.class);
-                i.putExtra(Constant.VIBRATE, preferences.getBoolean(Constant.VIBRATE, true));
-                i.putExtra(Constant.PANIC_TEXT, preferences.getString(Constant.PANIC_TEXT, Constant.DEFAULT_PANIC_TEXT));
-                i.putExtra(Constant.SEND_LOCATION, preferences.getBoolean(Constant.SEND_LOCATION, true));
-                startActivityForResult(i, Constant.SETTING_COMPLETE);
+                startActivity(i);
                 return true;
             case R.id.gallery:
                 startActivity(new Intent(this, Gallery.class));
@@ -775,7 +767,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 ((Spinner) findViewById(R.id.voice_code2)).setSelection(Integer.parseInt(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).substring(1, 2)));
                 ((Spinner) findViewById(R.id.voice_code3)).setSelection(Integer.parseInt(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).substring(2, 3)));
                 ((Spinner) findViewById(R.id.voice_code4)).setSelection(Integer.parseInt(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).substring(3, 4)));
-            }else if(Constant.ERROR_RECOGNISING.equals(intent.getAction())){
+            } else if (Constant.ERROR_RECOGNISING.equals(intent.getAction())) {
                 ((Switch) findViewById(R.id.voice_code_switch)).setCheckedImmediately(false);
                 Toast.makeText(context, "Sorry something went wrong. Probably some other application is using MIC", Toast.LENGTH_SHORT).show();
             }

@@ -571,8 +571,7 @@
                 android:layout_height="wrap_content"
                 android:padding="10dp"
                 android:text="Note: This app works in background, even when screen is off or device is locked."
-                android:textColor="@color/colorAccent"
-                android:textSize="15sp" />
+                android:textSize="14sp" />
         </android.support.v7.widget.CardView>
 
 

@@ -197,7 +197,8 @@ public class MyService extends Service implements RecognitionListener {
     };
 
     private void event1() {
-        ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(200);
+        //((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(200);
+        Util.vibrate(this,200);
     }
 
     private void event2() {
@@ -208,7 +209,8 @@ public class MyService extends Service implements RecognitionListener {
                 preferences.getBoolean(Constant.TAKE_PHOTO_FRONT_CAM, true)) {
             if (!isMyServiceRunning(ImageCaptureService.class)) {
 
-                ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(200);
+       //         ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(200);
+                Util.vibrate(this,200);
 
                 Intent i = new Intent(this, ImageCaptureService.class);
                 i.putExtra(Constant.TAKE_PHOTO_BACK_CAM, preferences.getBoolean(Constant.TAKE_PHOTO_BACK_CAM, true));
@@ -222,7 +224,8 @@ public class MyService extends Service implements RecognitionListener {
         if (preferences.getBoolean(Constant.TAKE_VIDEO, false)) {
             if (!isMyServiceRunning(VideoRecorderService.class)) {
 
-                ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(200);
+              //  ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(200);
+                Util.vibrate(this,200);
 
                 final Intent v = new Intent(this, VideoRecorderService.class);
                 Log.i("biky", "video recorder service called");
@@ -231,7 +234,7 @@ public class MyService extends Service implements RecognitionListener {
         }
     }
 
-    private void stopRecordingVideo() {
+    public void stopRecordingVideo() {
         Log.i("biky", "video recorder service stop called");
         stopService(new Intent(this, VideoRecorderService.class));
     }
@@ -391,7 +394,8 @@ public class MyService extends Service implements RecognitionListener {
 
     private void panic() {
         sendBroadcast(new Intent().setAction(Constant.VOICE_MATCHED));
-        ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(200);
+        //((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(200);
+        Util.vibrate(this,200);
     }
 
 

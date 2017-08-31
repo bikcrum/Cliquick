@@ -14,6 +14,7 @@ import java.util.Locale;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.Size;
@@ -39,9 +40,11 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     @SuppressWarnings("deprecation")
     private Camera camera = null;
     private MediaRecorder mediaRecorder = null;
+    private SharedPreferences preferences;
 
     @Override
     public void onCreate() {
+        preferences = getSharedPreferences(Constant.PREFERENCE_NAME, MODE_PRIVATE);
         //noinspection deprecation
         camera = Camera.open();
 
@@ -67,12 +70,6 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
         mediaRecorder = new MediaRecorder();
         camera.unlock();
-        if (Build.VERSION.SDK_INT >= 17) {
-            camera.enableShutterSound(false);
-        } else {
-            AudioManager audio = (AudioManager) this.getApplicationContext().getSystemService(Context.AUDIO_SERVICE);
-            audio.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, 0 /*AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE*/);
-        }
 
         mediaRecorder.setPreviewDisplay(surfaceHolder.getSurface());
         //noinspection deprecation
@@ -125,9 +122,18 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
         try {
             mediaRecorder.prepare();
+            if (!preferences.getBoolean(Constant.SHUTTER_SOUND, false)) {
+                Util.muteEverything(this);
+                new android.os.Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        Util.unmuteEverything(VideoRecorderService.this);
+                    }
+                }, 2000);
+            }
             mediaRecorder.start();
-            long[] pattern = {0,50,50,50};
-            ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(pattern,-1);
+            //    ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(Constant.VIBRATE_PATTERN, -1);
+            Util.vibrate(this, Constant.VIBRATE_PATTERN, -1);
         } catch (Exception e) {
             Log.i("biky", "media recorder failed to start " + e.getMessage());
             stopSelf();
@@ -139,8 +145,23 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     public void onDestroy() {
         try {
             if (mediaRecorder != null) {
+
+                if (!preferences.getBoolean(Constant.SHUTTER_SOUND, false)) {
+                    Util.muteEverything(this);
+                }
+
                 mediaRecorder.reset();
                 mediaRecorder.release();
+
+                if (!preferences.getBoolean(Constant.SHUTTER_SOUND, false)) {
+                    new android.os.Handler().postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            Util.unmuteEverything(VideoRecorderService.this);
+                        }
+                    }, 2000);
+                }
+                ;
                 Log.i("biky", "on destroy. media recorder reset and released");
             }
             if (camera != null) {
@@ -148,8 +169,8 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 camera.release();
                 Log.i("biky", "on destroy. camera locked and released");
             }
-            long[] pattern = {0,50,50,50};
-            ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(pattern,-1);
+            // ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(Constant.VIBRATE_PATTERN, -1);
+            Util.vibrate(this, Constant.VIBRATE_PATTERN, -1);
             windowManager.removeView(surfaceView);
         } catch (Exception e) {
             Log.i("biky", "error on destroy = " + e.getMessage());
