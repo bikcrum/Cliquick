@@ -94,7 +94,7 @@ public class ImageCaptureService extends HiddenCameraService {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ENGLISH).format(new Date());
         String imageFileName = "CQ" + timeStamp;
         File directory = new File(Constant.IMAGE_PATH);
-        if (!directory.exists()) {
+        if (!directory.exists() || !directory.isDirectory()) {
             directory.mkdirs();
         }
         File imageFile = new File(directory, imageFileName + Constant.IMAGE_FILE_EXTENSION);

@@ -16,6 +16,9 @@ import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import edu.cmu.pocketsphinx.Assets;
 import edu.cmu.pocketsphinx.Hypothesis;
@@ -29,10 +32,13 @@ public class MyService extends Service implements RecognitionListener {
     private boolean isBound = false;
     private MediaPlayer mediaPlayer;
 
-    private static final String KWS_SEARCH = "thisdoesntwork";
+    public String SEARCH_VOICE_CODE = "five one one five";
     private SpeechRecognizer recognizer = null;
 
     private SharedPreferences preferences;
+    private Timer timer = new Timer();
+    String[] digitsList;
+    private File digitGrammar = null;
 
     public MyService() {
     }
@@ -49,14 +55,38 @@ public class MyService extends Service implements RecognitionListener {
 
         IntentFilter filter = new IntentFilter();
         filter.addAction("android.media.VOLUME_CHANGED_ACTION");
+        filter.addAction(Intent.ACTION_SCREEN_OFF);
+        filter.addAction(Intent.ACTION_SCREEN_ON);
         registerReceiver(broadcastReceiver, filter);
 
         if (preferences.getBoolean(Constant.VOICE_ENABLED, true)) {
             startRecognizerSetup();
         }
 
+        digitsList = getResources().getStringArray(R.array.digits);
+
+        updateSearchVoiceCode();
+
         return START_STICKY;
     }
+
+    public void updateSearchVoiceCode() {
+        String digits = preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE);
+        //parsing the voice code that is use to activate panic
+        //init with default
+        try {
+            int i = Integer.parseInt(digits.substring(0, 1));
+            int j = Integer.parseInt(digits.substring(1, 2));
+            int k = Integer.parseInt(digits.substring(2, 3));
+            int l = Integer.parseInt(digits.substring(3, 4));
+            SEARCH_VOICE_CODE = String.format(Locale.ENGLISH, "%s %s %s %s",
+                    digitsList[i], digitsList[j], digitsList[k], digitsList[l]);
+        } catch (Exception e) {
+            sendBroadcast(new Intent().setAction(Constant.ERROR_WHILE_PARSING_VOICE_SEARCH_CODE));
+            Log.i("biky", "error while parsing voice search code " + e.getMessage());
+        }
+    }
+
 
     @Override
     public void onRebind(Intent intent) {
@@ -92,7 +122,11 @@ public class MyService extends Service implements RecognitionListener {
     public BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if ("android.media.VOLUME_CHANGED_ACTION".equals(intent.getAction())) {
+            if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
+                stopRecordingVideo();
+            } else if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())) {
+                stopRecordingVideo();
+            } else if ("android.media.VOLUME_CHANGED_ACTION".equals(intent.getAction())) {
                 Object vol = intent.getExtras().get("android.media.EXTRA_VOLUME_STREAM_VALUE");
                 int volume = 1;
                 if (vol == null) {
@@ -115,6 +149,7 @@ public class MyService extends Service implements RecognitionListener {
                         totalTime15 += delta;
                     }
                 } else {
+                    //button is released
                     totalTime0 = 0;
                     totalTime15 = 0;
                 }
@@ -169,9 +204,10 @@ public class MyService extends Service implements RecognitionListener {
         if (!preferences.getBoolean(Constant.VOLUME_DOWN_ENABLED, true)) {
             return;
         }
-        if (!isMyServiceRunning(ImageCaptureService.class)) {
-            if (preferences.getBoolean(Constant.TAKE_PHOTO_BACK_CAM, true) ||
-                    preferences.getBoolean(Constant.TAKE_PHOTO_FRONT_CAM, true)) {
+        if (preferences.getBoolean(Constant.TAKE_PHOTO_BACK_CAM, true) ||
+                preferences.getBoolean(Constant.TAKE_PHOTO_FRONT_CAM, true)) {
+            if (!isMyServiceRunning(ImageCaptureService.class)) {
+
                 ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(200);
 
                 Intent i = new Intent(this, ImageCaptureService.class);
@@ -179,10 +215,25 @@ public class MyService extends Service implements RecognitionListener {
                 i.putExtra(Constant.TAKE_PHOTO_FRONT_CAM, preferences.getBoolean(Constant.TAKE_PHOTO_FRONT_CAM, false));
                 Log.i("biky", "image capture service back cam called");
                 startService(i);
+            } else {
+                Log.i("biky", "image capture service back cam already running");
             }
-        } else {
-            Log.i("biky", "image capture service back cam already running");
         }
+        if (preferences.getBoolean(Constant.TAKE_VIDEO, false)) {
+            if (!isMyServiceRunning(VideoRecorderService.class)) {
+
+                ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(200);
+
+                final Intent v = new Intent(this, VideoRecorderService.class);
+                Log.i("biky", "video recorder service called");
+                startService(v);
+            }
+        }
+    }
+
+    private void stopRecordingVideo() {
+        Log.i("biky", "video recorder service stop called");
+        stopService(new Intent(this, VideoRecorderService.class));
     }
 
     private boolean isMyServiceRunning(Class<?> serviceClass) {
@@ -206,11 +257,14 @@ public class MyService extends Service implements RecognitionListener {
 
     void stopRecognizing() {
         if (recognizer != null) {
-            Log.i("biky","stopping recognizer");
+            Log.i("biky", "stopping recognizer");
             recognizer.stop();
             recognizer.cancel();
             recognizer.shutdown();
             recognizer = null;
+            digitGrammar = null;
+        } else {
+            Log.i("biky", "recogniser already stopped");
         }
     }
 
@@ -219,7 +273,7 @@ public class MyService extends Service implements RecognitionListener {
             Log.i("biky", "Recognition already running");
             return; //already running
         }
-        Log.i("biky","starting recognizer");
+        Log.i("biky", "starting recognizer");
 
         new AsyncTask<Void, Void, Exception>() {
             @Override
@@ -229,6 +283,7 @@ public class MyService extends Service implements RecognitionListener {
                     File assetDir = assets.syncAssets();
                     setupRecognizer(assetDir);
                 } catch (IOException e) {
+                    sendBroadcast(new Intent().setAction(Constant.ERROR_RECOGNISING));
                     return e;
                 }
                 return null;
@@ -238,8 +293,9 @@ public class MyService extends Service implements RecognitionListener {
             protected void onPostExecute(Exception result) {
                 if (result != null) {
                     Log.i("biky", "Failed to init recognizer " + result);
+                    sendBroadcast(new Intent().setAction(Constant.ERROR_RECOGNISING));
                 } else {
-                    switchSearch(KWS_SEARCH);
+                    search(SEARCH_VOICE_CODE);
                 }
             }
         }.execute();
@@ -264,10 +320,10 @@ public class MyService extends Service implements RecognitionListener {
                 // .setBoolean("-allphone_ci", true)
 
                 .getRecognizer();
+
         recognizer.addListener(this);
 
-        File digitGrammar = new File(assetsDir, "digits.gram");
-        recognizer.addGrammarSearch(KWS_SEARCH, digitGrammar);
+        digitGrammar = new File(assetsDir, "digits.gram");
     }
 
     @Override
@@ -277,7 +333,8 @@ public class MyService extends Service implements RecognitionListener {
 
         String text = hypothesis.getHypstr().trim();
 
-        if (text.contains(KWS_SEARCH)) {
+        if (text.contains(SEARCH_VOICE_CODE)) {
+            stopRecognizing();
             panic();
         }
 
@@ -293,10 +350,6 @@ public class MyService extends Service implements RecognitionListener {
 
         String text = hypothesis.getHypstr();
         Log.i("biky", "on result " + text);
-
-        if (text.contains(KWS_SEARCH)) {
-            panic();
-        }
     }
 
     @Override
@@ -310,29 +363,34 @@ public class MyService extends Service implements RecognitionListener {
     @Override
     public void onEndOfSpeech() {
         Log.d("biky", "on end of speech : ");
-        if (!recognizer.getSearchName().equals(KWS_SEARCH))
-            switchSearch(KWS_SEARCH);
     }
 
     @Override
     public void onError(Exception error) {
-        Log.i("biky", error.getMessage());
+        sendBroadcast(new Intent().setAction(Constant.ERROR_RECOGNISING));
+        Log.i("biky", "on error " + error.getMessage());
     }
 
     @Override
     public void onTimeout() {
         Log.d("biky", "on time out : ");
-        switchSearch(KWS_SEARCH);
+        search(SEARCH_VOICE_CODE);
     }
 
-    private void switchSearch(String searchName) {
-        recognizer.stop();
-        recognizer.cancel();
-        // If we are not spotting, start listening with timeout (10000 ms or 10 seconds).
-        recognizer.startListening(searchName, 10000);
+    private void search(String searchName) {
+        if (recognizer != null && digitGrammar != null) {
+
+            recognizer.addGrammarSearch(SEARCH_VOICE_CODE, digitGrammar);
+
+            recognizer.stop();
+            recognizer.cancel();
+
+            recognizer.startListening(searchName, 10000);
+        }
     }
 
     private void panic() {
+        sendBroadcast(new Intent().setAction(Constant.VOICE_MATCHED));
         ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(200);
     }
 

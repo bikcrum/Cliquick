@@ -52,9 +52,14 @@ class Constant {
     static final int PERMISSION_CAPTURE_IMAGE_IN_BACKGROUND = 8;
     static final String TIME_PICKER = "time picker";
     static final String IMAGE_PATH = "/storage/emulated/0/Pictures/Cliquick";
+    static final String VIDEO_PATH = "/storage/emulated/0/Video/Cliquick";
     static final String VOICE_SWITCH_CHANGED = "voice_switch_changed";
     static final String IMAGE_FILE_EXTENSION = ".jpg";
+    static final String VIDEO_FILE_EXTENSION = ".mp4";
     static final String NEW_IMAGE_CAPTURED = "new image captured";
+    static final String VOICE_MATCHED = "voice_matched";
+    static final String ERROR_WHILE_PARSING_VOICE_SEARCH_CODE = "error while parsing voice search code";
+    static final String ERROR_RECOGNISING = "error recognising";
 
     //defaults
     static final String DEFAULT_PANIC_TEXT = "Help me! I'm in trouble";

@@ -7,6 +7,7 @@ import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -15,6 +16,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.provider.ContactsContract;
 import android.provider.SyncStateContract;
@@ -63,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     SQLiteDatabase db;
 
     private TextToSpeech tts;
+    private Handler handler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +84,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
         handlePermissions();
 
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Constant.VOICE_MATCHED);
+        registerReceiver(receiver, filter);
         Intent i = new Intent(this, MyService.class);
         startService(i);
     }
@@ -109,19 +115,18 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         }
 
         //camera permission
-        if(preferences.getBoolean(Constant.VOLUME_DOWN_ENABLED, true)) {
-            if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)){
+        if (preferences.getBoolean(Constant.VOLUME_DOWN_ENABLED, true)) {
+            if (getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
                 if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) !=
                         PackageManager.PERMISSION_GRANTED
                         || (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.SYSTEM_ALERT_WINDOW) !=
                         PackageManager.PERMISSION_GRANTED)) {
-
                     ((Switch) findViewById(R.id.vol_down_switch)).setCheckedImmediately(false);
                     preferences.edit().putBoolean(Constant.VOLUME_DOWN_ENABLED, false).apply();
 
                     ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.SYSTEM_ALERT_WINDOW}, Constant.PERMISSION_CAPTURE_IMAGE_IN_BACKGROUND);
                 }
-            }else{
+            } else {
                 ((Switch) findViewById(R.id.vol_down_switch)).setCheckedImmediately(false);
                 preferences.edit().putBoolean(Constant.VOLUME_DOWN_ENABLED, false).apply();
                 Toast.makeText(this, "Your device doesn't have a camera", Toast.LENGTH_SHORT).show();
@@ -247,7 +252,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
         ((Switch) findViewById(R.id.voice_code_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
-            public void onCheckedChanged(Switch view, boolean checked) {
+            public void onCheckedChanged(Switch view,final boolean checked) {
+                long delay = 0;
                 if (checked) {
                     if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.RECORD_AUDIO) !=
                             PackageManager.PERMISSION_GRANTED ||
@@ -258,17 +264,24 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE}, Constant.PERMISSIONS_POCKET_SPHINX);
                         return;
                     }
-                    if(myService!= null) myService.startRecognizerSetup();
+                    if (myService != null) myService.startRecognizerSetup();
+                    delay = 500;
+                }else {
+                    if (myService != null) myService.stopRecognizing();
                 }
-                if(myService!= null) myService.stopRecognizing();
-                findViewById(R.id.voice_code_switch_text).setEnabled(checked);
-                findViewById(R.id.voice_code1).setEnabled(checked);
-                findViewById(R.id.voice_code2).setEnabled(checked);
-                findViewById(R.id.voice_code3).setEnabled(checked);
-                findViewById(R.id.voice_code4).setEnabled(checked);
-                findViewById(R.id.speak_btn).setVisibility(checked ? View.VISIBLE : View.GONE);
-                findViewById(R.id.mic_note).setVisibility(checked ? View.VISIBLE : View.GONE);
-
+                handler.removeCallbacksAndMessages(null);
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        findViewById(R.id.voice_code_switch_text).setEnabled(checked);
+                        findViewById(R.id.voice_code1).setEnabled(checked);
+                        findViewById(R.id.voice_code2).setEnabled(checked);
+                        findViewById(R.id.voice_code3).setEnabled(checked);
+                        findViewById(R.id.voice_code4).setEnabled(checked);
+                        findViewById(R.id.speak_btn).setVisibility(checked ? View.VISIBLE : View.GONE);
+                        findViewById(R.id.mic_note).setVisibility(checked ? View.VISIBLE : View.GONE);
+                    }
+                },delay);
                 preferences.edit().putBoolean(Constant.VOICE_ENABLED, checked).apply();
             }
         });
@@ -278,8 +291,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
                 StringBuilder voiceCode = new StringBuilder(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE));
                 voiceCode.setCharAt(0, (char) (position + '0'));
-                Log.i("biky", "voice code after setting " + voiceCode.toString());
+                //Log.i("biky", "voice code after setting " + voiceCode.toString());
                 preferences.edit().putString(Constant.VOICE_CODE, voiceCode.toString()).apply();
+                if(myService!= null) myService.updateSearchVoiceCode();
             }
 
             @Override
@@ -293,8 +307,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
                 StringBuilder voiceCode = new StringBuilder(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE));
                 voiceCode.setCharAt(1, (char) (position + '0'));
-                Log.i("biky", "voice code after setting " + voiceCode.toString());
+                // Log.i("biky", "voice code after setting " + voiceCode.toString());
                 preferences.edit().putString(Constant.VOICE_CODE, voiceCode.toString()).apply();
+                if(myService!= null) myService.updateSearchVoiceCode();
             }
 
             @Override
@@ -308,8 +323,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
                 StringBuilder voiceCode = new StringBuilder(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE));
                 voiceCode.setCharAt(2, (char) (position + '0'));
-                Log.i("biky", "voice code after setting " + voiceCode.toString());
+                //Log.i("biky", "voice code after setting " + voiceCode.toString());
                 preferences.edit().putString(Constant.VOICE_CODE, voiceCode.toString()).apply();
+                if(myService!= null) myService.updateSearchVoiceCode();
             }
 
             @Override
@@ -323,8 +339,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
                 StringBuilder voiceCode = new StringBuilder(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE));
                 voiceCode.setCharAt(3, (char) (position + '0'));
-                Log.i("biky", "voice code after setting " + voiceCode.toString());
+                //Log.i("biky", "voice code after setting " + voiceCode.toString());
                 preferences.edit().putString(Constant.VOICE_CODE, voiceCode.toString()).apply();
+                if(myService!= null) myService.updateSearchVoiceCode();
             }
 
             @Override
@@ -392,7 +409,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.backcam_switch_text).setEnabled(checked);
-
+                if (checked) {
+                    ((Switch) findViewById(R.id.video_switch)).setChecked(false);
+                }
                 preferences.edit().putBoolean(Constant.TAKE_PHOTO_BACK_CAM, checked).apply();
             }
         });
@@ -401,7 +420,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.frontcam_switch_text).setEnabled(checked);
-
+                if (checked) {
+                    ((Switch) findViewById(R.id.video_switch)).setChecked(false);
+                }
                 preferences.edit().putBoolean(Constant.TAKE_PHOTO_FRONT_CAM, checked).apply();
             }
         });
@@ -410,7 +431,11 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             @Override
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.video_switch_text).setEnabled(checked);
-
+                findViewById(R.id.video_switch_text1).setEnabled(checked);
+                if (checked) {
+                    ((Switch) findViewById(R.id.frontcam_switch)).setChecked(false);
+                    ((Switch) findViewById(R.id.backcam_switch)).setChecked(false);
+                }
                 preferences.edit().putBoolean(Constant.TAKE_VIDEO, checked).apply();
             }
         });
@@ -664,6 +689,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             tts.shutdown();
         }
         db.close();
+        unregisterReceiver(receiver);
         super.onDestroy();
     }
 
@@ -717,12 +743,43 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 startActivityForResult(i, Constant.SETTING_COMPLETE);
                 return true;
             case R.id.gallery:
-                startActivity(new Intent(this,Gallery.class));
+                startActivity(new Intent(this, Gallery.class));
 
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
+
+    BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (Constant.VOICE_MATCHED.equals(intent.getAction())) {
+                findViewById(R.id.voice_code1).setBackgroundResource(R.drawable.gradient_spinner_voice_detected);
+                findViewById(R.id.voice_code2).setBackgroundResource(R.drawable.gradient_spinner_voice_detected);
+                findViewById(R.id.voice_code3).setBackgroundResource(R.drawable.gradient_spinner_voice_detected);
+                findViewById(R.id.voice_code4).setBackgroundResource(R.drawable.gradient_spinner_voice_detected);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        ((Switch) findViewById(R.id.voice_code_switch)).setChecked(false);
+                        findViewById(R.id.voice_code1).setBackgroundResource(R.drawable.gradient_spinner);
+                        findViewById(R.id.voice_code2).setBackgroundResource(R.drawable.gradient_spinner);
+                        findViewById(R.id.voice_code3).setBackgroundResource(R.drawable.gradient_spinner);
+                        findViewById(R.id.voice_code4).setBackgroundResource(R.drawable.gradient_spinner);
+                    }
+                }, 500);
+            } else if (Constant.ERROR_WHILE_PARSING_VOICE_SEARCH_CODE.equals(intent.getAction())) {
+                preferences.edit().putString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).apply();
+                ((Spinner) findViewById(R.id.voice_code1)).setSelection(Integer.parseInt(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).substring(0, 1)));
+                ((Spinner) findViewById(R.id.voice_code2)).setSelection(Integer.parseInt(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).substring(1, 2)));
+                ((Spinner) findViewById(R.id.voice_code3)).setSelection(Integer.parseInt(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).substring(2, 3)));
+                ((Spinner) findViewById(R.id.voice_code4)).setSelection(Integer.parseInt(preferences.getString(Constant.VOICE_CODE, Constant.DEFAULT_VOICE_CODE).substring(3, 4)));
+            }else if(Constant.ERROR_RECOGNISING.equals(intent.getAction())){
+                ((Switch) findViewById(R.id.voice_code_switch)).setCheckedImmediately(false);
+                Toast.makeText(context, "Sorry something went wrong. Probably some other application is using MIC", Toast.LENGTH_SHORT).show();
+            }
+        }
+    };
 }
 

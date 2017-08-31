@@ -13,14 +13,12 @@
             </item>
         </layer-list>
     </item>
-
-
-    <item android:state_enabled="true" android:state_pressed="false">
+    <item android:state_enabled="true" android:state_pressed="true">
         <layer-list>
             <item>
                 <shape>
-                    <solid android:color="#ececec" />
-                    <!--stroke android:width="2dp" android:color="#aaaaaa"/-->
+                    <solid android:color="#a3fc9b"  />
+                    <!--stroke android:width="2dp" android:color="#82fc76"/-->
                     <corners android:radius="6dp" />
                     <padding android:bottom="3dp" android:left="3dp" android:right="3dp" android:top="3dp" />
                 </shape>
@@ -28,12 +26,12 @@
         </layer-list>
     </item>
 
-    <item android:state_enabled="true" android:state_pressed="true">
+    <item android:state_enabled="true" android:state_pressed="false">
         <layer-list>
             <item>
                 <shape>
-                    <solid android:color="#cacaca" />
-                    <!--stroke android:width="2dp" android:color="#c7c7c7" /-->
+                    <solid android:color="#c9ffc4" />
+                    <!--stroke android:width="2dp" android:color="#c9ffc4" /-->
                     <corners android:radius="6dp" />
                     <padding android:bottom="3dp" android:left="3dp" android:right="3dp" android:top="3dp" />
                 </shape>

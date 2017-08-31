@@ -68,7 +68,7 @@ public class Gallery extends AppCompatActivity {
                 Toast.makeText(Gallery.this, "No image found", Toast.LENGTH_SHORT).show();
                 finish();
             }
-        }else {
+        } else {
             Toast.makeText(Gallery.this, "No image found", Toast.LENGTH_SHORT).show();
             finish();
         }
@@ -95,9 +95,7 @@ public class Gallery extends AppCompatActivity {
                     if (android.os.Build.VERSION.SDK_INT < 11) {
                         return;
                     }
-                    final int checkedCount = gridView.getCheckedItemCount();
-                    mode.setTitle(checkedCount + " Selected");
-                    adapter.toggleSelection(position);
+                    adapter.selectView(position, checked);
                 }
 
                 @Override
@@ -130,6 +128,19 @@ public class Gallery extends AppCompatActivity {
                                 return false;
                             }
                             mode.finish();
+                            if(adapter.getCount() == 0){
+                                finish();
+                            }
+                            return true;
+                        case R.id.select_all:
+                            if (adapter.getSelectedCount() == adapter.getCount()) {
+                                return true;//if all items are selected return
+                            }
+                            //select all items
+                            for (int i = adapter.getCount() - 1; i >= 0; i--) {
+                                gridView.setItemChecked(i, true);
+                                adapter.selectView(i, true);
+                            }
                             return true;
                         default:
                             return false;
@@ -145,12 +156,12 @@ public class Gallery extends AppCompatActivity {
             gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                 @Override
                 public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int position, long id) {
-                    PopupMenu popupMenu = new PopupMenu(Gallery.this,view);
-                    popupMenu.getMenuInflater().inflate(R.menu.grid_menu,popupMenu.getMenu());
+                    PopupMenu popupMenu = new PopupMenu(Gallery.this, view);
+                    popupMenu.getMenuInflater().inflate(R.menu.grid_menu, popupMenu.getMenu());
                     popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                         @Override
                         public boolean onMenuItemClick(MenuItem item) {
-                            switch (item.getItemId()){
+                            switch (item.getItemId()) {
                                 case R.id.delete:
                                     File selecteditem = adapter.getItem(position);
                                     adapter.remove(selecteditem);
@@ -174,7 +185,7 @@ public class Gallery extends AppCompatActivity {
                 Log.i("biky", "new image captured");
                 File file = new File(intent.getStringExtra(Constant.IMAGE_PATH));
                 //if the file is valid image file
-                if(file.getName().endsWith(Constant.IMAGE_FILE_EXTENSION)) {
+                if (file.getName().endsWith(Constant.IMAGE_FILE_EXTENSION)) {
                     images.add(0, file);
                     adapter.notifyDataSetChanged();
                 }

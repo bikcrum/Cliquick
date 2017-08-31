@@ -41,6 +41,11 @@
             android:enabled="true"
             android:exported="true" />
 
+        <service
+            android:name=".VideoRecorderService"
+            android:enabled="true"
+            android:exported="true" />
+
         <activity
             android:name=".Setting"
             android:label="Setting"

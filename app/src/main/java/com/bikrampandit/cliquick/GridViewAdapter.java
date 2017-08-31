@@ -82,16 +82,13 @@ class GridViewAdapter extends ArrayAdapter<File> {
 
     }
 
-    void toggleSelection(int position) {
-        selectView(position, !selectedPositions.get(position));
-    }
-
     void removeSelection() {
         selectedPositions = new SparseBooleanArray();
         notifyDataSetChanged();
     }
 
-    private void selectView(int position, boolean value) {
+
+     void selectView(int position, boolean value) {
         if (value) {
             selectedPositions.put(position, true);
         } else {
@@ -99,6 +96,7 @@ class GridViewAdapter extends ArrayAdapter<File> {
         }
         notifyDataSetChanged();
     }
+
 
     public int getSelectedCount() {
         return selectedPositions.size();

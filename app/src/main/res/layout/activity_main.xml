@@ -58,7 +58,8 @@
 
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp">
 
                     <TextView
                         android:id="@+id/vol_up_text1"
@@ -80,6 +81,16 @@
                         android:entries="@array/numbers" />
 
                 </RelativeLayout>
+
+                <TextView
+                    android:id="@+id/vol_up_text2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/vol_up_text1"
+                    android:text="Hint: Release button after vibrate"
+                    android:textColor="@drawable/usage_hint"
+                    android:textSize="15sp" />
+
 
                 <View
                     android:layout_width="match_parent"
@@ -189,8 +200,6 @@
                     android:layout_height="wrap_content"
                     android:text="Note: Other application won't be able to use mic while this feature is on, still you can make a call"
                     android:textSize="14sp" />
-
-
             </LinearLayout>
 
 
@@ -376,6 +385,7 @@
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
                     android:orientation="horizontal">
 
                     <TextView
@@ -398,6 +408,15 @@
                         android:entries="@array/numbers" />
 
                 </RelativeLayout>
+
+                <TextView
+                    android:id="@+id/vol_down_text2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/vol_down_text1"
+                    android:text="Hint: Release button after vibrate"
+                    android:textColor="@drawable/usage_hint"
+                    android:textSize="15sp" />
 
 
             </LinearLayout>
@@ -509,8 +528,7 @@
                         android:layout_centerVertical="true"
                         android:checked="true" />
 
-                    <TextView
-                        android:id="@+id/video_switch_text"
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentLeft="true"
@@ -518,9 +536,24 @@
                         android:layout_centerVertical="true"
                         android:layout_toLeftOf="@id/video_switch"
                         android:layout_toStartOf="@id/video_switch"
-                        android:text="Take video until button is released"
-                        android:textSize="16sp" />
+                        android:orientation="vertical">
 
+                        <TextView
+                            android:id="@+id/video_switch_text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="5dp"
+                            android:text="Record video from back camera"
+                            android:textSize="16sp" />
+
+                        <TextView
+                            android:id="@+id/video_switch_text1"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Hint: Turn screen on/off to stop recording"
+                            android:textColor="@drawable/usage_hint"
+                            android:textSize="15sp" />
+                    </LinearLayout>
 
                 </RelativeLayout>
             </LinearLayout>
@@ -538,6 +571,7 @@
                 android:layout_height="wrap_content"
                 android:padding="10dp"
                 android:text="Note: This app works in background, even when screen is off or device is locked."
+                android:textColor="@color/colorAccent"
                 android:textSize="15sp" />
         </android.support.v7.widget.CardView>
 
