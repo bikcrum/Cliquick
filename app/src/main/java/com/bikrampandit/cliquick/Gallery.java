@@ -11,11 +11,8 @@ import android.support.v7.widget.PopupMenu;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
-import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
@@ -25,12 +22,11 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 
 public class Gallery extends AppCompatActivity {
     private GridView gridView;
-    private ArrayList<File> images = new ArrayList<>();
+    public ArrayList<File> files = new ArrayList<>();
     private GridViewAdapter adapter;
 
     @Override
@@ -46,13 +42,13 @@ public class Gallery extends AppCompatActivity {
 
         gridView = (GridView) findViewById(R.id.image_gallery);
 
-        File directory = new File(Constant.IMAGE_PATH);
+        File directory = new File(Constant.FILE_PATH);
         if (directory.isDirectory()) {
             File[] files = directory.listFiles(new FileFilter() {
                 @Override
                 public boolean accept(File file) {
                     //checking if the file is image file
-                    return file.getName().endsWith(Constant.IMAGE_FILE_EXTENSION);
+                    return file.getName().endsWith(Constant.IMAGE_FILE_EXTENSION) || file.getName().endsWith(Constant.VIDEO_FILE_EXTENSION);
                 }
             });
             if (files != null && files.length > 0) {
@@ -63,7 +59,7 @@ public class Gallery extends AppCompatActivity {
                         return f2.getName().compareTo(f1.getName());
                     }
                 });
-                images = new ArrayList<>(Arrays.asList(files));
+                this.files = new ArrayList<>(Arrays.asList(files));
             } else {
                 Toast.makeText(Gallery.this, "No image found", Toast.LENGTH_SHORT).show();
                 finish();
@@ -73,9 +69,9 @@ public class Gallery extends AppCompatActivity {
             finish();
         }
         if (android.os.Build.VERSION.SDK_INT >= 11) {
-            adapter = new GridViewAdapter(this, R.layout.cell_layout, images);
+            adapter = new GridViewAdapter(this, R.layout.cell_layout, files);
         } else {
-            adapter = new GridViewAdapter(this, R.layout.cell_layout_targetapi9, images);
+            adapter = new GridViewAdapter(this, R.layout.cell_layout_targetapi9, files);
         }
         gridView.setAdapter(adapter);
 
@@ -128,7 +124,7 @@ public class Gallery extends AppCompatActivity {
                                 return false;
                             }
                             mode.finish();
-                            if(adapter.getCount() == 0){
+                            if (adapter.getCount() == 0) {
                                 finish();
                             }
                             return true;
@@ -175,18 +171,17 @@ public class Gallery extends AppCompatActivity {
                 }
             });
         }
-        registerReceiver(receiver, new IntentFilter(Constant.NEW_IMAGE_CAPTURED));
+        registerReceiver(receiver, new IntentFilter(Constant.NEW_FILE_CREATED));
     }
 
     BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (Constant.NEW_IMAGE_CAPTURED.equals(intent.getAction())) {
-                Log.i("biky", "new image captured");
-                File file = new File(intent.getStringExtra(Constant.IMAGE_PATH));
-                //if the file is valid image file
-                if (file.getName().endsWith(Constant.IMAGE_FILE_EXTENSION)) {
-                    images.add(0, file);
+            if (Constant.NEW_FILE_CREATED.equals(intent.getAction())) {
+                Log.i("biky", "new image captured or video recorded");
+                File file = new File(intent.getStringExtra(Constant.FILE_PATH));
+                if (file.getName().endsWith(Constant.IMAGE_FILE_EXTENSION) || file.getName().endsWith(Constant.VIDEO_FILE_EXTENSION)) {
+                    files.add(0, file);
                     adapter.notifyDataSetChanged();
                 }
             }

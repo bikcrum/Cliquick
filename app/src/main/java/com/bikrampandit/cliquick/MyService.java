@@ -198,7 +198,7 @@ public class MyService extends Service implements RecognitionListener {
 
     private void event1() {
         //((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(200);
-        Util.vibrate(this,200);
+        Util.vibrate(this,100);
     }
 
     private void event2() {
@@ -210,7 +210,7 @@ public class MyService extends Service implements RecognitionListener {
             if (!isMyServiceRunning(ImageCaptureService.class)) {
 
        //         ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(200);
-                Util.vibrate(this,200);
+                Util.vibrate(this,100);
 
                 Intent i = new Intent(this, ImageCaptureService.class);
                 i.putExtra(Constant.TAKE_PHOTO_BACK_CAM, preferences.getBoolean(Constant.TAKE_PHOTO_BACK_CAM, true));
@@ -225,7 +225,7 @@ public class MyService extends Service implements RecognitionListener {
             if (!isMyServiceRunning(VideoRecorderService.class)) {
 
               //  ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(200);
-                Util.vibrate(this,200);
+                Util.vibrate(this,100);
 
                 final Intent v = new Intent(this, VideoRecorderService.class);
                 Log.i("biky", "video recorder service called");
@@ -395,7 +395,7 @@ public class MyService extends Service implements RecognitionListener {
     private void panic() {
         sendBroadcast(new Intent().setAction(Constant.VOICE_MATCHED));
         //((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(200);
-        Util.vibrate(this,200);
+        Util.vibrate(this,100);
     }
 
 

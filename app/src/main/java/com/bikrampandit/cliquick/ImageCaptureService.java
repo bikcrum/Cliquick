@@ -8,20 +8,16 @@ package com.bikrampandit.cliquick;
 import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.os.Environment;
 import android.os.IBinder;
-import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
-import android.widget.Toast;
 
 import com.androidhiddencamera.CameraConfig;
 import com.androidhiddencamera.CameraError;
@@ -33,7 +29,6 @@ import com.androidhiddencamera.config.CameraResolution;
 import com.androidhiddencamera.config.CameraRotation;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -94,7 +89,7 @@ public class ImageCaptureService extends HiddenCameraService {
     private File createImageFile() {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ENGLISH).format(new Date());
         String imageFileName = "CQ" + timeStamp;
-        File directory = new File(Constant.IMAGE_PATH);
+        File directory = new File(Constant.FILE_PATH);
         if (!directory.exists() || !directory.isDirectory()) {
             directory.mkdirs();
         }
@@ -120,16 +115,16 @@ public class ImageCaptureService extends HiddenCameraService {
         AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         am.setStreamVolume(AudioManager.STREAM_MUSIC, am.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 0);
 
-        if (getSharedPreferences(Constant.PREFERENCE_NAME, MODE_PRIVATE).getBoolean(Constant.SHUTTER_SOUND, false)) {
+        if (getSharedPreferences(Constant.PREFERENCE_NAME, MODE_PRIVATE).getBoolean(Constant.SHUTTER_SOUND, true)) {
             cameraSound.start();
         }
 
         Log.i("biky", "image captured by  cam " + imageFile.length() + ", image absolute path = " + imageFile.getAbsolutePath());
 
-        Intent j = new Intent();
-        j.setAction(Constant.NEW_IMAGE_CAPTURED);
-        j.putExtra(Constant.IMAGE_PATH, imageFile.getAbsolutePath());
-        sendBroadcast(j);
+        sendBroadcast(new Intent().
+                setAction(Constant.NEW_FILE_CREATED).
+                putExtra(Constant.FILE_PATH, imageFile.getAbsolutePath())
+        );
 
         //((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(Constant.VIBRATE_PATTERN,-1);
         Util.vibrate(this, Constant.VIBRATE_PATTERN, -1);

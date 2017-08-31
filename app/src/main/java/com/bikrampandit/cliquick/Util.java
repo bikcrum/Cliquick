@@ -3,6 +3,9 @@ package com.bikrampandit.cliquick;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.media.AudioManager;
 import android.os.Vibrator;
 import android.support.v4.app.ActivityCompat;
@@ -30,6 +33,14 @@ class Util {
         system = audio.getStreamVolume(AudioManager.STREAM_SYSTEM);
         voice_call = audio.getStreamVolume(AudioManager.STREAM_VOICE_CALL);
         music = audio.getStreamVolume(AudioManager.STREAM_MUSIC);
+
+        audio.setStreamVolume(AudioManager.STREAM_RING, 0, 0);
+        audio.setStreamVolume(AudioManager.STREAM_ALARM, 0, 0);
+        audio.setStreamVolume(AudioManager.STREAM_DTMF, 0, 0);
+        audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, 0, 0);
+        audio.setStreamVolume(AudioManager.STREAM_SYSTEM, 0, 0);
+        audio.setStreamVolume(AudioManager.STREAM_VOICE_CALL, 0, 0);
+        audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);
     }
 
     static void unmuteEverything(Context context) {

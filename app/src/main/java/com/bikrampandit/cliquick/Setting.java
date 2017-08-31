@@ -283,7 +283,7 @@ public class Setting extends AppCompatActivity {
         ((CheckBox) findViewById(R.id.w6)).setChecked(Integer.parseInt(preferences.getString(Constant.WEEK_ENABLE, Constant.DEFAULT_WEEK).substring(5, 6)) != 0);
         ((CheckBox) findViewById(R.id.w7)).setChecked(Integer.parseInt(preferences.getString(Constant.WEEK_ENABLE, Constant.DEFAULT_WEEK).substring(6, 7)) != 0);
 
-        ((Switch) findViewById(R.id.shutter_sound)).setChecked(preferences.getBoolean(Constant.SHUTTER_SOUND, false));
+        ((Switch) findViewById(R.id.shutter_sound)).setChecked(preferences.getBoolean(Constant.SHUTTER_SOUND, true));
         ((TextView) findViewById(R.id.panic_text_view)).setText(preferences.getString(Constant.PANIC_TEXT, Constant.DEFAULT_PANIC_TEXT) + " (Tap to change)");
         ((CheckBox) findViewById(R.id.send_location)).setChecked(preferences.getBoolean(Constant.SEND_LOCATION, true));
         findViewById(R.id.send_location_text).setEnabled(preferences.getBoolean(Constant.SEND_LOCATION, true));

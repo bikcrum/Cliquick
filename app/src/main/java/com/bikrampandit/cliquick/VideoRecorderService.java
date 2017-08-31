@@ -5,10 +5,8 @@ package com.bikrampandit.cliquick;
  */
 
 import java.io.File;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
 import android.app.Service;
@@ -17,21 +15,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
-import android.hardware.Camera.Size;
-import android.media.AudioManager;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
-import android.os.Build;
-import android.os.Environment;
 import android.os.IBinder;
-import android.os.Vibrator;
-import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
-import android.widget.Toast;
 
 public class VideoRecorderService extends Service implements SurfaceHolder.Callback {
 
@@ -41,6 +32,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     private Camera camera = null;
     private MediaRecorder mediaRecorder = null;
     private SharedPreferences preferences;
+    private File videoFile = null;
 
     @Override
     public void onCreate() {
@@ -83,7 +75,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         //  mediaRecorder.setMaxDuration(25000);//25 seconds in ms
         //   mediaRecorder.setMaxFileSize(20971520);//20 MB in bytes
 
-        File directory = new File(Constant.VIDEO_PATH);
+        File directory = new File(Constant.FILE_PATH);
         if (!directory.exists() || !directory.isDirectory()) {
             //noinspection ResultOfMethodCallIgnored
             directory.mkdirs();
@@ -92,7 +84,8 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ENGLISH).format(new Date());
         String videoFileName = "CQ" + timeStamp;
 
-        File videoFile = new File(directory, videoFileName + Constant.VIDEO_FILE_EXTENSION);
+        videoFile = new File(directory, videoFileName + Constant.VIDEO_FILE_EXTENSION);
+
         int i = 1;
         while (videoFile.exists()) {
             videoFile = new File(directory, videoFileName + "(" + i + ")" + Constant.IMAGE_FILE_EXTENSION);
@@ -122,7 +115,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
         try {
             mediaRecorder.prepare();
-            if (!preferences.getBoolean(Constant.SHUTTER_SOUND, false)) {
+            if (!preferences.getBoolean(Constant.SHUTTER_SOUND, true)) {
                 Util.muteEverything(this);
                 new android.os.Handler().postDelayed(new Runnable() {
                     @Override
@@ -135,6 +128,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             //    ((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(Constant.VIBRATE_PATTERN, -1);
             Util.vibrate(this, Constant.VIBRATE_PATTERN, -1);
         } catch (Exception e) {
+            videoFile = null;
             Log.i("biky", "media recorder failed to start " + e.getMessage());
             stopSelf();
         }
@@ -146,22 +140,25 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         try {
             if (mediaRecorder != null) {
 
-                if (!preferences.getBoolean(Constant.SHUTTER_SOUND, false)) {
+                if (!preferences.getBoolean(Constant.SHUTTER_SOUND, true)) {
                     Util.muteEverything(this);
                 }
 
                 mediaRecorder.reset();
                 mediaRecorder.release();
 
-                if (!preferences.getBoolean(Constant.SHUTTER_SOUND, false)) {
+                if (!preferences.getBoolean(Constant.SHUTTER_SOUND, true)) {
                     new android.os.Handler().postDelayed(new Runnable() {
                         @Override
                         public void run() {
                             Util.unmuteEverything(VideoRecorderService.this);
+                            sendBroadcast(new Intent().
+                                    setAction(Constant.NEW_FILE_CREATED).
+                                    putExtra(Constant.FILE_PATH, videoFile.getAbsolutePath())
+                            );
                         }
                     }, 2000);
                 }
-                ;
                 Log.i("biky", "on destroy. media recorder reset and released");
             }
             if (camera != null) {
@@ -173,6 +170,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             Util.vibrate(this, Constant.VIBRATE_PATTERN, -1);
             windowManager.removeView(surfaceView);
         } catch (Exception e) {
+            videoFile = null;
             Log.i("biky", "error on destroy = " + e.getMessage());
         }
         super.onDestroy();
