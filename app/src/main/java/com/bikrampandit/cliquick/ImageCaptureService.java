@@ -34,8 +34,6 @@ import java.util.Date;
 import java.util.Locale;
 
 public class ImageCaptureService extends HiddenCameraService {
-
-
     private MediaPlayer cameraSound;
     private Intent intent;
 
@@ -91,6 +89,7 @@ public class ImageCaptureService extends HiddenCameraService {
         String imageFileName = "CQ" + timeStamp;
         File directory = new File(Constant.FILE_PATH);
         if (!directory.exists() || !directory.isDirectory()) {
+            //noinspection ResultOfMethodCallIgnored
             directory.mkdirs();
         }
         File imageFile = new File(directory, imageFileName + Constant.IMAGE_FILE_EXTENSION);

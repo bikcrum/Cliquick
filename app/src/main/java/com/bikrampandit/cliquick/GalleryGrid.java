@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.PopupMenu;
@@ -24,7 +23,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 
-public class Gallery extends AppCompatActivity {
+public class GalleryGrid extends AppCompatActivity {
     private GridView gridView;
     public ArrayList<File> files = new ArrayList<>();
     private GridViewAdapter adapter;
@@ -61,15 +60,15 @@ public class Gallery extends AppCompatActivity {
                 });
                 this.files = new ArrayList<>(Arrays.asList(files));
             } else {
-                Toast.makeText(Gallery.this, "No image found", Toast.LENGTH_SHORT).show();
+                Toast.makeText(GalleryGrid.this, "No image or video found", Toast.LENGTH_SHORT).show();
                 finish();
             }
         } else {
-            Toast.makeText(Gallery.this, "No image found", Toast.LENGTH_SHORT).show();
+            Toast.makeText(GalleryGrid.this, "No image video found", Toast.LENGTH_SHORT).show();
             finish();
         }
         if (android.os.Build.VERSION.SDK_INT >= 11) {
-            adapter = new GridViewAdapter(this, R.layout.cell_layout, files);
+            adapter = new GridViewAdapter(this, R.layout.single_grid, files);
         } else {
             adapter = new GridViewAdapter(this, R.layout.cell_layout_targetapi9, files);
         }
@@ -78,7 +77,8 @@ public class Gallery extends AppCompatActivity {
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                //TODO
+                startActivity(new Intent(GalleryGrid.this,
+                        GalleryFullscreen.class).putExtra(Constant.CURRENT_FILE_SELECTION, position));
             }
         });
 
@@ -152,7 +152,7 @@ public class Gallery extends AppCompatActivity {
             gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                 @Override
                 public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int position, long id) {
-                    PopupMenu popupMenu = new PopupMenu(Gallery.this, view);
+                    PopupMenu popupMenu = new PopupMenu(GalleryGrid.this, view);
                     popupMenu.getMenuInflater().inflate(R.menu.grid_menu, popupMenu.getMenu());
                     popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                         @Override
@@ -178,8 +178,8 @@ public class Gallery extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (Constant.NEW_FILE_CREATED.equals(intent.getAction())) {
-                Log.i("biky", "new image captured or video recorded");
                 File file = new File(intent.getStringExtra(Constant.FILE_PATH));
+                Log.i("biky", "new image captured or video recorded, file path = " + file.getAbsolutePath());
                 if (file.getName().endsWith(Constant.IMAGE_FILE_EXTENSION) || file.getName().endsWith(Constant.VIDEO_FILE_EXTENSION)) {
                     files.add(0, file);
                     adapter.notifyDataSetChanged();

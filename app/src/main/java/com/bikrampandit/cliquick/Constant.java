@@ -59,6 +59,7 @@ class Constant {
     static final String VOICE_MATCHED = "voice_matched";
     static final String ERROR_WHILE_PARSING_VOICE_SEARCH_CODE = "error while parsing voice search code";
     static final String ERROR_RECOGNISING = "error recognising";
+    static final String  CURRENT_FILE_SELECTION = "current file selection";
 
     //defaults
     static final String DEFAULT_PANIC_TEXT = "Help me! I'm in trouble";

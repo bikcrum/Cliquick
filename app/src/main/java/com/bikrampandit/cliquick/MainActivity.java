@@ -735,7 +735,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                 startActivity(i);
                 return true;
             case R.id.gallery:
-                startActivity(new Intent(this, Gallery.class));
+                startActivity(new Intent(this, GalleryGrid.class));
 
                 return true;
             default:

@@ -11,11 +11,16 @@ import android.os.Vibrator;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 /**
  * Created by Rakesh Pandit on 8/31/2017.
  */
 
-class Util {
+class Util{
     static private int ring;
     static private int alarm;
     static private int dtmf;
@@ -65,6 +70,36 @@ class Util {
         int permissionCheck = ContextCompat.checkSelfPermission(context, Manifest.permission.VIBRATE);
         if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
             ((Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE)).vibrate(pattern, repeat);
+        }
+    }
+
+    static String getSeekTime(int msec) {
+        int seconds = msec / 1000;
+        int minutes = seconds / 60;
+        int hours = minutes / 60;
+
+        seconds %= 60;
+        minutes %= 60;
+
+        return (hours <= 0 ? "" : hours + ":") +
+                minutes + ":" +
+                seconds;
+    }
+
+    //returns date in nice format parsed from its name
+    static String getFileInfo(File file) {
+        String fileName = file.getName();
+        String parcelableDate;
+        if (fileName.contains("(")) {
+            parcelableDate = fileName.substring(2, fileName.lastIndexOf('('));
+        } else {
+            parcelableDate = fileName.substring(2, fileName.lastIndexOf('.'));
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.ENGLISH);
+        try {
+            return new SimpleDateFormat("EEE, MMM d, h:mm:ss a", Locale.ENGLISH).format(sdf.parse(parcelableDate));
+        } catch (Exception ex) {
+            return parcelableDate;
         }
     }
 }

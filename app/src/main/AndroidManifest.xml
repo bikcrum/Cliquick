@@ -40,7 +40,6 @@
             android:name=".ImageCaptureService"
             android:enabled="true"
             android:exported="true" />
-
         <service
             android:name=".VideoRecorderService"
             android:enabled="true"
@@ -53,7 +52,14 @@
 
         </activity>
         <activity
-            android:name=".Gallery"
+            android:name=".GalleryGrid"
+            android:label="Gallery"
+            android:parentActivityName=".MainActivity">
+
+        </activity>
+        <activity
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:name=".GalleryFullscreen"
             android:label="Gallery"
             android:parentActivityName=".MainActivity">
 

@@ -61,7 +61,10 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
 
         mediaRecorder = new MediaRecorder();
+        camera.setDisplayOrientation(90);
         camera.unlock();
+
+
 
         mediaRecorder.setPreviewDisplay(surfaceHolder.getSurface());
         //noinspection deprecation
@@ -71,6 +74,8 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
 
         mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
+
+        mediaRecorder.setOrientationHint(90);
 
         //  mediaRecorder.setMaxDuration(25000);//25 seconds in ms
         //   mediaRecorder.setMaxFileSize(20971520);//20 MB in bytes

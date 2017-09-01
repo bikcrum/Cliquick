@@ -144,7 +144,7 @@
                         android:background="?attr/selectableItemBackgroundBorderless"
                         android:contentDescription="speaker"
                         android:onClick="speakCode"
-                        android:src="@drawable/ic_play" />
+                        android:src="@drawable/ic_play_black" />
 
 
                     <LinearLayout
