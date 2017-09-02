@@ -1,4 +1,4 @@
-package com.bikrampandit.cliquick;
+package com.bikrampandit.cliquick.Service;
 
 import android.app.ActivityManager;
 import android.app.Service;
@@ -11,14 +11,16 @@ import android.media.MediaPlayer;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
-import android.os.Vibrator;
 import android.util.Log;
+
+import com.bikrampandit.cliquick.Utility.Constant;
+import com.bikrampandit.cliquick.R;
+import com.bikrampandit.cliquick.Utility.Util;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 import java.util.Timer;
-import java.util.TimerTask;
 
 import edu.cmu.pocketsphinx.Assets;
 import edu.cmu.pocketsphinx.Hypothesis;
@@ -110,7 +112,7 @@ public class MyService extends Service implements RecognitionListener {
     }
 
     public class MyBinder extends Binder {
-        MyService getService() {
+        public MyService getService() {
             return MyService.this;
         }
     }
@@ -258,7 +260,7 @@ public class MyService extends Service implements RecognitionListener {
         stopRecognizing();
     }
 
-    void stopRecognizing() {
+    public void stopRecognizing() {
         if (recognizer != null) {
             Log.i("biky", "stopping recognizer");
             recognizer.stop();
@@ -271,7 +273,7 @@ public class MyService extends Service implements RecognitionListener {
         }
     }
 
-    void startRecognizerSetup() {
+    public void startRecognizerSetup() {
         if (recognizer != null) {
             Log.i("biky", "Recognition already running");
             return; //already running

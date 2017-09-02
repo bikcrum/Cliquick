@@ -4,7 +4,7 @@
     android:id="@+id/activity_gallery"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.bikrampandit.cliquick.GalleryGrid">
+    tools:context="com.bikrampandit.cliquick.Activity.GalleryGrid">
 
     <GridView
         android:layout_width="match_parent"

@@ -1,4 +1,4 @@
-package com.bikrampandit.cliquick;
+package com.bikrampandit.cliquick.Activity;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -16,6 +16,10 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.Toast;
+
+import com.bikrampandit.cliquick.Adapter.GridViewAdapter;
+import com.bikrampandit.cliquick.R;
+import com.bikrampandit.cliquick.Utility.Constant;
 
 import java.io.File;
 import java.io.FileFilter;
@@ -70,7 +74,8 @@ public class GalleryGrid extends AppCompatActivity {
         if (android.os.Build.VERSION.SDK_INT >= 11) {
             adapter = new GridViewAdapter(this, R.layout.single_grid, files);
         } else {
-            adapter = new GridViewAdapter(this, R.layout.cell_layout_targetapi9, files);
+            //TODO
+            adapter = new GridViewAdapter(this, R.layout.single_grid_targetapi9, files);
         }
         gridView.setAdapter(adapter);
 

@@ -3,7 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:foreground="?android:attr/activatedBackgroundIndicator"
+    android:foreground="?android:attr/selectableItemBackground"
+    android:clickable="true"
     tools:targetApi="honeycomb">
 
     <com.bikrampandit.cliquick.Utility.SquareImageView

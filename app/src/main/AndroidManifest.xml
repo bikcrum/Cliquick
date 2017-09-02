@@ -23,7 +23,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".MainActivity"
+            android:name=".Activity.MainActivity"
             android:launchMode="singleTop">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -33,35 +33,35 @@
         </activity>
 
         <service
-            android:name=".MyService"
+            android:name=".Service.MyService"
             android:enabled="true"
             android:exported="true" />
         <service
-            android:name=".ImageCaptureService"
+            android:name=".Service.ImageCaptureService"
             android:enabled="true"
             android:exported="true" />
         <service
-            android:name=".VideoRecorderService"
+            android:name=".Service.VideoRecorderService"
             android:enabled="true"
             android:exported="true" />
 
         <activity
-            android:name=".Setting"
+            android:name=".Utility.Setting"
             android:label="Setting"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".Activity.MainActivity">
 
         </activity>
         <activity
-            android:name=".GalleryGrid"
+            android:name=".Activity.GalleryGrid"
             android:label="Gallery"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".Activity.MainActivity">
 
         </activity>
         <activity
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
-            android:name=".GalleryFullscreen"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:name=".Activity.GalleryFullscreen"
             android:label="Gallery"
-            android:parentActivityName=".MainActivity">
+            android:parentActivityName=".Activity.MainActivity">
 
         </activity>
     </application>

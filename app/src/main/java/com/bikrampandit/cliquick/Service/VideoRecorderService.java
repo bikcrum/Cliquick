@@ -1,4 +1,4 @@
-package com.bikrampandit.cliquick;
+package com.bikrampandit.cliquick.Service;
 
 /**
  * Created by Rakesh Pandit on 8/30/2017.
@@ -23,6 +23,9 @@ import android.view.Gravity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.WindowManager;
+
+import com.bikrampandit.cliquick.Utility.Constant;
+import com.bikrampandit.cliquick.Utility.Util;
 
 public class VideoRecorderService extends Service implements SurfaceHolder.Callback {
 

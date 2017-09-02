@@ -1,4 +1,4 @@
-package com.bikrampandit.cliquick;
+package com.bikrampandit.cliquick.Utility;
 
 import android.content.Context;
 import android.util.AttributeSet;
@@ -13,6 +13,7 @@ public class SquareImageView extends ImageView {
         super(context);
     }
 
+
     public SquareImageView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
@@ -24,6 +25,6 @@ public class SquareImageView extends ImageView {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        setMeasuredDimension(getMeasuredWidth(), getMeasuredWidth()); //Snap to width
+        setMeasuredDimension(getMeasuredWidth(),getMeasuredWidth()); //Snap to width
     }
 }

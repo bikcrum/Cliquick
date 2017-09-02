@@ -4,79 +4,44 @@
     android:id="@+id/activity_gallery_fullscreen"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.bikrampandit.cliquick.GalleryFullscreen">
+    tools:context="com.bikrampandit.cliquick.Activity.GalleryFullscreen">
 
     <android.support.v4.view.ViewPager
         android:id="@+id/view_pager"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
     </android.support.v4.view.ViewPager>
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="#60a3a3a3"
-        android:id="@+id/videocontroller"
-        android:padding="3dp">
-
-        <ImageButton
-            android:id="@+id/play_btn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_play" />
-
-        <TextView
-            android:id="@+id/seek_time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_toEndOf="@id/play_btn"
-            android:layout_toRightOf="@id/play_btn"
-            android:padding="2dp"
-            android:text="00:00"
-            android:textColor="#ffffff" />
-
-        <TextView
-            android:id="@+id/total_time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:padding="2dp"
-            android:text="00:05"
-            android:textColor="#ffffff" />
-
-        <SeekBar
-            android:id="@+id/seek_time_bar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:layout_toEndOf="@id/seek_time"
-            android:layout_toLeftOf="@id/total_time"
-            android:layout_toRightOf="@id/seek_time"
-            android:layout_toStartOf="@id/total_time" />
-    </RelativeLayout>
-
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="top"
-        android:background="#60a3a3a3"
-        android:padding="3dp">
+        android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/file_info"
-            android:layout_width="wrap_content"
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
-            android:padding="3dp"
-            android:text="CQ20170901_120006"
-            android:textColor="#ffffff" />
+            android:background="#60a3a3a3"
+            android:padding="3dp">
 
-    </RelativeLayout>
+            <TextView
+                android:id="@+id/file_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:padding="3dp"
+                android:text="CQ20170901_120006"
+                android:textColor="#ffffff" />
 
+        </RelativeLayout>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        </android.support.v7.widget.RecyclerView>
+
+    </LinearLayout>
 </FrameLayout>

@@ -1,42 +1,30 @@
-package com.bikrampandit.cliquick;
+package com.bikrampandit.cliquick.Activity;
 
-import android.media.MediaPlayer;
-import android.os.Handler;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.transition.Visibility;
-import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.util.SparseBooleanArray;
 import android.view.View;
-import android.widget.FrameLayout;
-import android.widget.ImageButton;
-import android.widget.RelativeLayout;
-import android.widget.SeekBar;
-import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.VideoView;
+
+import com.bikrampandit.cliquick.Adapter.FullScreenViewAdapter;
+import com.bikrampandit.cliquick.Adapter.RecyclerViewAdapter;
+import com.bikrampandit.cliquick.R;
+import com.bikrampandit.cliquick.Utility.Constant;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
 
 public class GalleryFullscreen extends AppCompatActivity {
 
-    public ArrayList<File> files = new ArrayList<>();
-    private Map<File,Boolean> pages = new HashMap<>();
-    ImageButton playButton;
-    TextView seekTime;
-    SeekBar seek;
-    TextView totalTime;
-
+    private ArrayList<File> files = new ArrayList<>();
+    private FullScreenViewAdapter fullScreenViewAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,14 +38,10 @@ public class GalleryFullscreen extends AppCompatActivity {
         }
 
         final ViewPager viewPager = (ViewPager) findViewById(R.id.view_pager);
-
-        playButton = (ImageButton) findViewById(R.id.play_btn);
-        seekTime = (TextView) findViewById(R.id.seek_time);
-        seek = (SeekBar) findViewById(R.id.seek_time_bar);
-        totalTime = (TextView) findViewById(R.id.total_time);
-        //  fileInfo = (TextView) findViewById(R.id.file_info);
-
-        //   fileInfo.setText(Util.getFileInfo(files.get(position)));
+        final RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
+        final LinearLayoutManager layoutManager  = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setItemAnimator(new DefaultItemAnimator());
 
         final int currentItem = getIntent().getIntExtra(Constant.CURRENT_FILE_SELECTION, 0);
 
@@ -88,27 +72,46 @@ public class GalleryFullscreen extends AppCompatActivity {
             finish();
         }
 
-        final FullScreenViewAdapter adapter = new FullScreenViewAdapter(this, files);
+        fullScreenViewAdapter = new FullScreenViewAdapter(this, files);
 
-        viewPager.setAdapter(adapter);
+        viewPager.setAdapter(fullScreenViewAdapter);
 
         viewPager.setCurrentItem(currentItem);
 
-        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                //     Log.i("biky", "on page scrolled, position "+position);
-            }
+        //noinspection deprecation
+        viewPager.setOnPageChangeListener(fullScreenViewAdapter);
 
-            @Override
-            public void onPageSelected(final int position) {
-                //already we have add listenrs and stuffs
-            }
+        final RecyclerViewAdapter recyclerViewAdapter = new RecyclerViewAdapter(this,files);
+        recyclerView.setAdapter(recyclerViewAdapter);
 
+        recyclerViewAdapter.setOnItemClickListener(new RecyclerViewAdapter.OnItemClickListener() {
             @Override
-            public void onPageScrollStateChanged(int state) {
-                Log.i("biky", "on page scroll state changed, state =  " + state);
+            public void onItemClick(View view, int position) {
+                viewPager.setCurrentItem(position,true);
+                view.setSelected(true);
             }
         });
+
+        fullScreenViewAdapter.setOnItemClickListener(new FullScreenViewAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(View view,final int position) {
+                Log.i("biky","on item click view pager adapter");
+                new android.os.Handler().post(new Runnable() {
+                    @Override
+                    public void run() {
+                        recyclerView.scrollToPosition(position);
+
+                    }
+                });
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (fullScreenViewAdapter.handler != null) {
+            fullScreenViewAdapter.handler.removeCallbacksAndMessages(null);
+        }
     }
 }

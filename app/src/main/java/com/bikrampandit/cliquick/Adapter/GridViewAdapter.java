@@ -1,4 +1,4 @@
-package com.bikrampandit.cliquick;
+package com.bikrampandit.cliquick.Adapter;
 
 import android.app.Activity;
 import android.content.Context;
@@ -9,8 +9,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.ImageView;
 
+import com.bikrampandit.cliquick.Utility.Constant;
+import com.bikrampandit.cliquick.R;
+import com.bikrampandit.cliquick.Utility.SquareImageView;
 import com.bumptech.glide.Glide;
 
 import java.io.File;
@@ -20,13 +22,13 @@ import java.util.ArrayList;
  * Created by Rakesh Pandit on 8/29/2017.
  */
 
-class GridViewAdapter extends ArrayAdapter<File> {
+public class GridViewAdapter extends ArrayAdapter<File> {
     private Context context;
     private int layoutResourceId;
     private ArrayList<File> files = new ArrayList<>();
     private SparseBooleanArray selectedPositions;
 
-    GridViewAdapter(Context context, int layoutResourceId, ArrayList<File> files) {
+    public GridViewAdapter(Context context, int layoutResourceId, ArrayList<File> files) {
         super(context, layoutResourceId, files);
         this.layoutResourceId = layoutResourceId;
         this.context = context;
@@ -38,15 +40,15 @@ class GridViewAdapter extends ArrayAdapter<File> {
     @NonNull
     public View getView(final int position, View convertView, @NonNull ViewGroup parent) {
         View row = convertView;
-        ViewHolder holder = null;
+        ViewHolder holder;
 
         if (row == null) {
             LayoutInflater inflater = ((Activity) context).getLayoutInflater();
             row = inflater.inflate(layoutResourceId, parent, false);
             holder = new ViewHolder();
 
-            holder.image = (ImageView) row.findViewById(R.id.img);
-            holder.overLay = (ImageView)row.findViewById(R.id.overlay);
+            holder.image = (SquareImageView) row.findViewById(R.id.img);
+            holder.overLay = (SquareImageView)row.findViewById(R.id.overlay);
 
             row.setTag(holder);
         } else {
@@ -64,8 +66,8 @@ class GridViewAdapter extends ArrayAdapter<File> {
     }
 
     private static class ViewHolder {
-        ImageView image;
-        ImageView overLay;
+        SquareImageView image;
+        SquareImageView overLay;
     }
 
     @Nullable
@@ -83,13 +85,13 @@ class GridViewAdapter extends ArrayAdapter<File> {
 
     }
 
-    void removeSelection() {
+    public void removeSelection() {
         selectedPositions = new SparseBooleanArray();
         notifyDataSetChanged();
     }
 
 
-    void selectView(int position, boolean value) {
+    public void selectView(int position, boolean value) {
         if (value) {
             selectedPositions.put(position, true);
         } else {
@@ -99,11 +101,11 @@ class GridViewAdapter extends ArrayAdapter<File> {
     }
 
 
-    int getSelectedCount() {
+    public int getSelectedCount() {
         return selectedPositions.size();
     }
 
-    SparseBooleanArray getSelectedPositions() {
+    public SparseBooleanArray getSelectedPositions() {
         return selectedPositions;
     }
 }

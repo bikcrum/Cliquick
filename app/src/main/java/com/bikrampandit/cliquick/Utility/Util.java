@@ -1,4 +1,4 @@
-package com.bikrampandit.cliquick;
+package com.bikrampandit.cliquick.Utility;
 
 import android.Manifest;
 import android.content.Context;
@@ -20,16 +20,16 @@ import java.util.Locale;
  * Created by Rakesh Pandit on 8/31/2017.
  */
 
-class Util{
-    static private int ring;
-    static private int alarm;
-    static private int dtmf;
-    static private int notification;
-    static private int system;
-    static private int voice_call;
-    static private int music;
+public class Util{
+    private static int ring;
+    private static int alarm;
+    private static int dtmf;
+    private static int notification;
+    private static int system;
+    private static int voice_call;
+    private static int music;
 
-    static void muteEverything(Context context) {
+    public static void muteEverything(Context context) {
         AudioManager audio = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         ring = audio.getStreamVolume(AudioManager.STREAM_RING);
         alarm = audio.getStreamVolume(AudioManager.STREAM_ALARM);
@@ -48,7 +48,7 @@ class Util{
         audio.setStreamVolume(AudioManager.STREAM_MUSIC, 0, 0);
     }
 
-    static void unmuteEverything(Context context) {
+    public static void unmuteEverything(Context context) {
         AudioManager audio = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
         audio.setStreamVolume(AudioManager.STREAM_RING, ring, 0);
         audio.setStreamVolume(AudioManager.STREAM_ALARM, alarm, 0);
@@ -59,21 +59,21 @@ class Util{
         audio.setStreamVolume(AudioManager.STREAM_MUSIC, music, 0);
     }
 
-    static void vibrate(Context context, long delay) {
+    public static void vibrate(Context context, long delay) {
         int permissionCheck = ContextCompat.checkSelfPermission(context, Manifest.permission.VIBRATE);
         if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
             ((Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE)).vibrate(delay);
         }
     }
 
-    static void vibrate(Context context, long[] pattern, int repeat) {
+    public static void vibrate(Context context, long[] pattern, int repeat) {
         int permissionCheck = ContextCompat.checkSelfPermission(context, Manifest.permission.VIBRATE);
         if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
             ((Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE)).vibrate(pattern, repeat);
         }
     }
 
-    static String getSeekTime(int msec) {
+    public static String getSeekTime(int msec) {
         int seconds = msec / 1000;
         int minutes = seconds / 60;
         int hours = minutes / 60;
@@ -87,7 +87,7 @@ class Util{
     }
 
     //returns date in nice format parsed from its name
-    static String getFileInfo(File file) {
+    public static String getFileInfo(File file) {
         String fileName = file.getName();
         String parcelableDate;
         if (fileName.contains("(")) {

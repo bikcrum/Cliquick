@@ -1,4 +1,4 @@
-package com.bikrampandit.cliquick;
+package com.bikrampandit.cliquick.Activity;
 
 import android.Manifest;
 import android.app.Activity;
@@ -38,6 +38,11 @@ import android.widget.Toast;
 
 import android.widget.Spinner;
 
+import com.bikrampandit.cliquick.R;
+import com.bikrampandit.cliquick.Service.MyService;
+import com.bikrampandit.cliquick.Utility.Constant;
+import com.bikrampandit.cliquick.Utility.Setting;
+import com.bikrampandit.cliquick.Utility.SettingReaderDbHelper;
 import com.rey.material.widget.Switch;
 
 import java.util.ArrayList;
