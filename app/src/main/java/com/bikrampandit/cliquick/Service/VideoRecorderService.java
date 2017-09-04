@@ -68,7 +68,6 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
         camera.unlock();
 
 
-
         mediaRecorder.setPreviewDisplay(surfaceHolder.getSurface());
         //noinspection deprecation
         mediaRecorder.setCamera(camera);
@@ -96,7 +95,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
 
         int i = 1;
         while (videoFile.exists()) {
-            videoFile = new File(directory, videoFileName + "(" + i + ")" + Constant.IMAGE_FILE_EXTENSION);
+            videoFile = new File(directory, videoFileName + "(" + i + ")" + Constant.VIDEO_FILE_EXTENSION);
             i++;
             //ensure it doesnot repeat forever
             if (i > 10000) {
@@ -104,7 +103,7 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
             }
         }
 
-        mediaRecorder.setOutputFile(videoFile.getPath());
+        mediaRecorder.setOutputFile(videoFile.getPath() + ".temp");
 /*
         mediaRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
             @Override
@@ -155,18 +154,23 @@ public class VideoRecorderService extends Service implements SurfaceHolder.Callb
                 mediaRecorder.reset();
                 mediaRecorder.release();
 
-                if (!preferences.getBoolean(Constant.SHUTTER_SOUND, true)) {
-                    new android.os.Handler().postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
+                new android.os.Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!preferences.getBoolean(Constant.SHUTTER_SOUND, true)) {
                             Util.unmuteEverything(VideoRecorderService.this);
-                            sendBroadcast(new Intent().
-                                    setAction(Constant.NEW_FILE_CREATED).
-                                    putExtra(Constant.FILE_PATH, videoFile.getAbsolutePath())
-                            );
                         }
-                    }, 2000);
-                }
+                        File tempFile = new File(videoFile.getPath() + ".temp");
+                        if (!tempFile.exists()) return;
+                        File newFile = new File(videoFile.getPath());
+                        tempFile.renameTo(newFile);
+                        sendBroadcast(new Intent().
+                                setAction(Constant.NEW_FILE_CREATED).
+                                putExtra(Constant.FILE_PATH, videoFile.getAbsolutePath())
+                        );
+                    }
+                }, 2000);
+
                 Log.i("biky", "on destroy. media recorder reset and released");
             }
             if (camera != null) {

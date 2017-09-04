@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
 
 public class GalleryGrid extends AppCompatActivity {
@@ -64,26 +65,22 @@ public class GalleryGrid extends AppCompatActivity {
                 });
                 this.files = new ArrayList<>(Arrays.asList(files));
             } else {
-                Toast.makeText(GalleryGrid.this, "No image or video found", Toast.LENGTH_SHORT).show();
+                Toast.makeText(GalleryGrid.this, "No image or video found taken with this app", Toast.LENGTH_SHORT).show();
                 finish();
             }
         } else {
-            Toast.makeText(GalleryGrid.this, "No image video found", Toast.LENGTH_SHORT).show();
+            Toast.makeText(GalleryGrid.this, "No image or video found taken with this app", Toast.LENGTH_SHORT).show();
             finish();
         }
-        if (android.os.Build.VERSION.SDK_INT >= 11) {
-            adapter = new GridViewAdapter(this, R.layout.single_grid, files);
-        } else {
-            //TODO
-            adapter = new GridViewAdapter(this, R.layout.single_grid_targetapi9, files);
-        }
+        adapter = new GridViewAdapter(this, R.layout.single_grid, files);
+
         gridView.setAdapter(adapter);
 
         gridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                startActivity(new Intent(GalleryGrid.this,
-                        GalleryFullscreen.class).putExtra(Constant.CURRENT_FILE_SELECTION, position));
+                startActivityForResult(new Intent(GalleryGrid.this,
+                        GalleryFullscreen.class).putExtra(Constant.CURRENT_FILE_SELECTION, position), Constant.REQUEST_DELETED_POSITIONS);
             }
         });
 
@@ -97,6 +94,7 @@ public class GalleryGrid extends AppCompatActivity {
                         return;
                     }
                     adapter.selectView(position, checked);
+                    mode.setTitle(adapter.getSelectedCount() + " selected");
                 }
 
                 @Override
@@ -118,13 +116,14 @@ public class GalleryGrid extends AppCompatActivity {
                     switch (item.getItemId()) {
                         case R.id.delete:
                             SparseBooleanArray selected = adapter.getSelectedPositions();
-                            for (int i = (selected.size() - 1); i >= 0; i--) {
+                            for (int i = selected.size() - 1; i >= 0; i--) {
                                 if (selected.valueAt(i)) {
-                                    File selecteditem = adapter
-                                            .getItem(selected.keyAt(i));
-                                    adapter.remove(selecteditem);
+                                    int position = selected.keyAt(i);
+                                    File selectedFile = adapter.getItem(position);
+                                    adapter.remove(selectedFile, false);
                                 }
                             }
+                            adapter.notifyDataSetChanged();
                             if (android.os.Build.VERSION.SDK_INT < 11) {
                                 return false;
                             }
@@ -156,16 +155,20 @@ public class GalleryGrid extends AppCompatActivity {
         } else {
             gridView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                 @Override
-                public boolean onItemLongClick(AdapterView<?> adapterView, View view, final int position, long id) {
-                    PopupMenu popupMenu = new PopupMenu(GalleryGrid.this, view);
+                public boolean onItemLongClick(final AdapterView<?> adapterView, View view, final int position, long id) {
+                    final PopupMenu popupMenu = new PopupMenu(GalleryGrid.this, view);
                     popupMenu.getMenuInflater().inflate(R.menu.grid_menu, popupMenu.getMenu());
                     popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                         @Override
                         public boolean onMenuItemClick(MenuItem item) {
                             switch (item.getItemId()) {
                                 case R.id.delete:
-                                    File selecteditem = adapter.getItem(position);
-                                    adapter.remove(selecteditem);
+                                    if (position >= 0 && position < files.size()) {
+                                        if (files.get(position).delete()) {
+                                            files.remove(position);
+                                            adapter.notifyDataSetChanged();
+                                        }
+                                    }
                                     return true;
                                 default:
                                     return false;
@@ -179,13 +182,16 @@ public class GalleryGrid extends AppCompatActivity {
         registerReceiver(receiver, new IntentFilter(Constant.NEW_FILE_CREATED));
     }
 
-    BroadcastReceiver receiver = new BroadcastReceiver() {
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (Constant.NEW_FILE_CREATED.equals(intent.getAction())) {
                 File file = new File(intent.getStringExtra(Constant.FILE_PATH));
                 Log.i("biky", "new image captured or video recorded, file path = " + file.getAbsolutePath());
                 if (file.getName().endsWith(Constant.IMAGE_FILE_EXTENSION) || file.getName().endsWith(Constant.VIDEO_FILE_EXTENSION)) {
+                    if (files.contains(file)) {
+                        return;
+                    }
                     files.add(0, file);
                     adapter.notifyDataSetChanged();
                 }
@@ -197,5 +203,22 @@ public class GalleryGrid extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         unregisterReceiver(receiver);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.i("biky", "request code = " + requestCode + " result code = " + resultCode);
+        if (requestCode == Constant.REQUEST_DELETED_POSITIONS && resultCode == RESULT_OK) {
+            ArrayList<Integer> positions = data.getIntegerArrayListExtra(Constant.DELETED_POSITIONS);
+            for (int position : positions) {
+                if (position >= 0 && position < files.size()) {
+                    adapter.remove(files.get(position), false);
+                }
+            }
+            if (files.isEmpty()) {
+                finish();
+            }
+            adapter.notifyDataSetChanged();
+        }
     }
 }

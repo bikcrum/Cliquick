@@ -1,5 +1,13 @@
 package com.bikrampandit.cliquick.Activity;
 
+import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -7,11 +15,13 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.util.SparseBooleanArray;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
-import com.bikrampandit.cliquick.Adapter.FullScreenViewAdapter;
-import com.bikrampandit.cliquick.Adapter.RecyclerViewAdapter;
+import com.bikrampandit.cliquick.Adapter.FullScreenViewAdapter.ViewPagerAdapter;
+import com.bikrampandit.cliquick.Adapter.FullScreenViewAdapter.RecyclerViewAdapter;
 import com.bikrampandit.cliquick.R;
 import com.bikrampandit.cliquick.Utility.Constant;
 
@@ -24,7 +34,11 @@ import java.util.Comparator;
 public class GalleryFullscreen extends AppCompatActivity {
 
     private ArrayList<File> files = new ArrayList<>();
-    private FullScreenViewAdapter fullScreenViewAdapter;
+    private ViewPagerAdapter viewPagerAdapter;
+    private boolean selectionMode = false;
+    private RecyclerViewAdapter recyclerViewAdapter;
+    private ViewPager viewPager;
+    private View highLightedView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,9 +51,9 @@ public class GalleryFullscreen extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
 
-        final ViewPager viewPager = (ViewPager) findViewById(R.id.view_pager);
+        viewPager = (ViewPager) findViewById(R.id.view_pager);
         final RecyclerView recyclerView = (RecyclerView) findViewById(R.id.recyclerView);
-        final LinearLayoutManager layoutManager  = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        final LinearLayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setItemAnimator(new DefaultItemAnimator());
 
@@ -72,46 +86,150 @@ public class GalleryFullscreen extends AppCompatActivity {
             finish();
         }
 
-        fullScreenViewAdapter = new FullScreenViewAdapter(this, files);
+        viewPagerAdapter = new ViewPagerAdapter(this, files);
 
-        viewPager.setAdapter(fullScreenViewAdapter);
+        viewPager.setAdapter(viewPagerAdapter);
 
         viewPager.setCurrentItem(currentItem);
 
         //noinspection deprecation
-        viewPager.setOnPageChangeListener(fullScreenViewAdapter);
+        viewPager.setOnPageChangeListener(viewPagerAdapter);
 
-        final RecyclerViewAdapter recyclerViewAdapter = new RecyclerViewAdapter(this,files);
+        recyclerViewAdapter = new RecyclerViewAdapter(this, files);
         recyclerView.setAdapter(recyclerViewAdapter);
+
+        layoutManager.scrollToPositionWithOffset((currentItem / 4) * 4, 0);
 
         recyclerViewAdapter.setOnItemClickListener(new RecyclerViewAdapter.OnItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-                viewPager.setCurrentItem(position,true);
-                view.setSelected(true);
-            }
-        });
+                if (selectionMode) {
 
-        fullScreenViewAdapter.setOnItemClickListener(new FullScreenViewAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(View view,final int position) {
-                Log.i("biky","on item click view pager adapter");
-                new android.os.Handler().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        recyclerView.scrollToPosition(position);
+                    findViewById(R.id.delete).setVisibility(View.VISIBLE);
 
+                    recyclerViewAdapter.selectView(position, !view.isSelected());
+
+                    if (recyclerViewAdapter.getSelectedCount() == 0) {
+                        selectionMode = false;
+                        recyclerViewAdapter.removeSelection();
+                        findViewById(R.id.delete).setVisibility(View.GONE);
                     }
-                });
+                }
+                viewPager.setCurrentItem(position, true);
             }
         });
+
+        recyclerViewAdapter.setOnItemLongClickListener(new RecyclerViewAdapter.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(View view, int position) {
+
+                selectionMode = true;
+
+                findViewById(R.id.delete).setVisibility(View.VISIBLE);
+
+                recyclerViewAdapter.selectView(position, !view.isSelected());
+
+                if (recyclerViewAdapter.getSelectedCount() == 0) {
+                    selectionMode = false;
+                    recyclerViewAdapter.removeSelection();
+                    findViewById(R.id.delete).setVisibility(View.GONE);
+                }
+
+                //  Log.i("biky", "on item long click");
+                return true;
+            }
+        });
+
+        viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                layoutManager.scrollToPositionWithOffset((position / 4) * 4, 0);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+            }
+        });
+        registerReceiver(receiver, new IntentFilter(Constant.NEW_FILE_CREATED));
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (fullScreenViewAdapter.handler != null) {
-            fullScreenViewAdapter.handler.removeCallbacksAndMessages(null);
+        if (viewPagerAdapter != null && viewPagerAdapter.handler != null) {
+            viewPagerAdapter.handler.removeCallbacksAndMessages(null);
+        }
+        unregisterReceiver(receiver);
+    }
+
+
+    @Override
+    public void onBackPressed() {
+        if (recyclerViewAdapter == null) return;
+        if (selectionMode) {
+            selectionMode = false;
+            recyclerViewAdapter.removeSelection();
+            findViewById(R.id.delete).setVisibility(View.GONE);
+        } else {
+            sendResultToCaller();
+            super.onBackPressed();
         }
     }
+
+    private ArrayList<Integer> positions = new ArrayList<>();
+
+    public void deleteFile(View v) {
+        if (recyclerViewAdapter == null) return;
+        SparseBooleanArray selected = recyclerViewAdapter.getSelectedPositions();
+        for (int i = selected.size() - 1; i >= 0; i--) {
+            if (selected.valueAt(i)) {
+                int position = selected.keyAt(i);
+                File file = recyclerViewAdapter.getItem(position);
+                recyclerViewAdapter.remove(file, false);
+                positions.add(position);
+            }
+        }
+
+        viewPagerAdapter.notifyDataSetChanged();
+        recyclerViewAdapter.notifyDataSetChanged();
+
+        selectionMode = false;
+
+        recyclerViewAdapter.removeSelection();
+
+        findViewById(R.id.delete).setVisibility(View.GONE);
+
+        if (recyclerViewAdapter.getItemCount() == 0) {
+            sendResultToCaller();
+        }
+    }
+
+    private void sendResultToCaller() {
+        Intent resultIntent = new Intent();
+        resultIntent.putExtra(Constant.DELETED_POSITIONS, positions);
+        setResult(Activity.RESULT_OK, resultIntent);
+        finish();
+    }
+
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (Constant.NEW_FILE_CREATED.equals(intent.getAction())) {
+                File file = new File(intent.getStringExtra(Constant.FILE_PATH));
+                Log.i("biky", "new image captured or video recorded, file path = " + file.getAbsolutePath());
+                if (file.getName().endsWith(Constant.IMAGE_FILE_EXTENSION) || file.getName().endsWith(Constant.VIDEO_FILE_EXTENSION)) {
+                    if(files.contains(file)){
+                        return;
+                    }
+                    files.add(0, file);
+                    recyclerViewAdapter.notifyDataSetChanged();
+                    viewPagerAdapter.notifyDataSetChanged();
+                }
+            }
+        }
+    };
 }

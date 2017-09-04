@@ -60,6 +60,7 @@ public class Constant {
     public static final String ERROR_WHILE_PARSING_VOICE_SEARCH_CODE = "error while parsing voice search code";
     public static final String ERROR_RECOGNISING = "error recognising";
     public static final String  CURRENT_FILE_SELECTION = "current file selection";
+    public static final String UPDATE_FILES = "update_files";
 
     //defaults
     public static final String DEFAULT_PANIC_TEXT = "Help me! I'm in trouble";
@@ -69,4 +70,6 @@ public class Constant {
     public static final String DEFAULT_WEEK = "1111111";
     public static final String PREV_VOLUME = "prev_vol";
     public static final long[] VIBRATE_PATTERN  = {0,20,100,20};;
+    public static String DELETED_POSITIONS = "deleted_positions";
+    public static int REQUEST_DELETED_POSITIONS = 5;
 }

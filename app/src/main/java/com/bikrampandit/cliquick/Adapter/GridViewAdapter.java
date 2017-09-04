@@ -48,16 +48,16 @@ public class GridViewAdapter extends ArrayAdapter<File> {
             holder = new ViewHolder();
 
             holder.image = (SquareImageView) row.findViewById(R.id.img);
-            holder.overLay = (SquareImageView)row.findViewById(R.id.overlay);
+            holder.overLay = (SquareImageView) row.findViewById(R.id.overlay);
 
             row.setTag(holder);
         } else {
             holder = (ViewHolder) row.getTag();
         }
 
-        if(files.get(position).getName().endsWith(Constant.VIDEO_FILE_EXTENSION)){
+        if (files.get(position).getName().endsWith(Constant.VIDEO_FILE_EXTENSION)) {
             holder.overLay.setVisibility(View.VISIBLE);
-        }else{
+        } else {
             holder.overLay.setVisibility(View.GONE);
         }
         Glide.with(context).load(files.get(position)).into(holder.image);
@@ -73,17 +73,29 @@ public class GridViewAdapter extends ArrayAdapter<File> {
     @Nullable
     @Override
     public File getItem(int position) {
-        return files.get(position);
+        if (position >= 0 && position < files.size()) {
+            return files.get(position);
+        } else {
+            return null;
+        }
     }
 
     @Override
-    public void remove(File image) {
-        if (image.delete()) {
-            files.remove(image);
+    public void remove(File file) {
+        if (file != null && file.delete()) {
+            files.remove(file);
             notifyDataSetChanged();
         }
-
     }
+
+    public void remove(File file, boolean notify) {
+        if (file != null) {
+            file.delete();
+            files.remove(file);
+            if (notify) notifyDataSetChanged();
+        }
+    }
+
 
     public void removeSelection() {
         selectedPositions = new SparseBooleanArray();

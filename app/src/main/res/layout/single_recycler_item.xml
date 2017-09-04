@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:foreground="?android:attr/selectableItemBackground"
-    android:clickable="true"
-    tools:targetApi="honeycomb">
+    android:foreground="@drawable/selector"
+   >
 
     <com.bikrampandit.cliquick.Utility.SquareImageView
         android:id="@+id/img"
@@ -16,7 +14,7 @@
     <com.bikrampandit.cliquick.Utility.SquareImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:scaleType="center"
+        android:scaleType="fitXY"
         android:id="@+id/overlay"
         android:visibility="gone"
         android:src="@drawable/ic_overlay"/>

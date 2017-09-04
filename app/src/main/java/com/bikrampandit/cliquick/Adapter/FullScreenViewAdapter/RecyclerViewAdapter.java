@@ -1,4 +1,4 @@
-package com.bikrampandit.cliquick.Adapter;
+package com.bikrampandit.cliquick.Adapter.FullScreenViewAdapter;
 
 /**
  * Created by Rakesh Pandit on 9/2/2017.
@@ -6,27 +6,24 @@ package com.bikrampandit.cliquick.Adapter;
 
 import android.app.Activity;
 import android.content.Context;
-import android.graphics.Point;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.SparseBooleanArray;
-import android.view.Display;
+import android.view.ActionMode;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import com.bikrampandit.cliquick.R;
 import com.bikrampandit.cliquick.Utility.Constant;
 import com.bikrampandit.cliquick.Utility.SquareImageView;
-import com.bikrampandit.cliquick.Utility.SquareImageView1;
 import com.bumptech.glide.Glide;
 
 import java.io.File;
@@ -41,12 +38,14 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     private ArrayList<File> files;
     private OnItemClickListener onItemClickListener;
     private OnItemLongClickListener onItemLongClickListener;
+    private SparseBooleanArray selectedPositions;
+
 
     public interface OnItemClickListener {
-        public void onItemClick(View view, int position);
+        void onItemClick(View view, int position);
     }
 
-    interface OnItemLongClickListener {
+    public interface OnItemLongClickListener {
         boolean onItemLongClick(View view, int position);
     }
 
@@ -89,16 +88,14 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     public RecyclerViewAdapter(Context context, ArrayList<File> files) {
         this.context = context;
         this.files = files;
+        selectedPositions = new SparseBooleanArray();
+
     }
 
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view;
-        if (Build.VERSION.SDK_INT >= 11) {
-            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.single_recycler_item, parent, false);
-        } else {
-            view = LayoutInflater.from(parent.getContext()).inflate(R.layout.single_recycler_item_targetapi9, parent, false);
-        }
+        view = LayoutInflater.from(parent.getContext()).inflate(R.layout.single_grid, parent, false);
         return new MyViewHolder(view);
     }
 
@@ -112,21 +109,20 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         DisplayMetrics metrics = new DisplayMetrics();
         ((Activity) context).getWindowManager().getDefaultDisplay().getMetrics(metrics);
 
-        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(metrics.widthPixels / 4, metrics.widthPixels / 4);
+        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(metrics.widthPixels / 4, metrics.widthPixels /4);
 
-        holder.image.setLayoutParams(layoutParams);
-        holder.overlay.setLayoutParams(layoutParams);
-        holder.image.setPadding(1, 1, 1, 1);
-        holder.overlay.setPadding(1, 1, 1, 1);
-        if (Build.VERSION.SDK_INT >= 11) {
-            holder.image.setAlpha(0.8f);
-            holder.overlay.setAlpha(0.8f);
+        holder.itemView.setLayoutParams(layoutParams);
+
+            holder.itemView.setPadding(1, 1, 1, 1);
+
+        holder.itemView.setTag(files.get(position));
+
+        if (selectedPositions.get(position)) {
+            holder.itemView.setSelected(true);
+            ((FrameLayout) holder.itemView).setForeground(new ColorDrawable(ContextCompat.getColor(context, R.color.whiteSelected)));
         } else {
-            //noinspection deprecation
-            holder.image.setAlpha(200);
-            //noinspection deprecation
-            holder.overlay.setAlpha(200);
-
+            holder.itemView.setSelected(false);
+            ((FrameLayout) holder.itemView).setForeground(context.getResources().getDrawable(R.drawable.selector));
         }
         Glide.with(context).load(files.get(position)).into(holder.image);
     }
@@ -135,4 +131,44 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
     public int getItemCount() {
         return files.size();
     }
+
+    public File getItem(int position) {
+        if (position >= 0 && position < files.size()) {
+            return files.get(position);
+        } else {
+            return null;
+        }
+    }
+
+    public void remove(File file, boolean notify) {
+        if (file != null) {
+            file.delete();
+            files.remove(file);
+            if (notify) notifyDataSetChanged();
+        }
+    }
+
+    public void selectView(int position, boolean value) {
+        if (value) {
+            selectedPositions.put(position, true);
+        } else {
+            selectedPositions.delete(position);
+        }
+        notifyDataSetChanged();
+    }
+
+    public int getSelectedCount() {
+        return selectedPositions.size();
+    }
+
+    public SparseBooleanArray getSelectedPositions() {
+        return selectedPositions;
+    }
+
+    public void removeSelection() {
+        selectedPositions = new SparseBooleanArray();
+        notifyDataSetChanged();
+    }
+
+
 }
