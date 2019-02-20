@@ -41,5 +41,6 @@
     <string name="forecast_caption">To try recognition of a weather forecast like \"sunny spells on Wednesday\".</string>
     <string name="phone_caption">To try phonetic recognition say anything.</string>
     <string name="title_activity_main2">Main2Activity</string>
+    <string name="facebook_app_id">115276535825998</string>
 
 </resources>

@@ -124,7 +124,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
             holder.itemView.setSelected(false);
             ((FrameLayout) holder.itemView).setForeground(context.getResources().getDrawable(R.drawable.selector));
         }
-        Glide.with(context).load(files.get(position)).into(holder.image);
+        Glide.with(context).load(files.get(position)).error(R.drawable.ic_error_placeholder_white).into(holder.image);
     }
 
     @Override

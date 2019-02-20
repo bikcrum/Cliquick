@@ -5,9 +5,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -17,11 +14,10 @@ import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.View;
-import android.widget.FrameLayout;
 import android.widget.Toast;
 
-import com.bikrampandit.cliquick.Adapter.FullScreenViewAdapter.ViewPagerAdapter;
 import com.bikrampandit.cliquick.Adapter.FullScreenViewAdapter.RecyclerViewAdapter;
+import com.bikrampandit.cliquick.Adapter.FullScreenViewAdapter.ViewPagerAdapter;
 import com.bikrampandit.cliquick.R;
 import com.bikrampandit.cliquick.Utility.Constant;
 
@@ -38,7 +34,6 @@ public class GalleryFullscreen extends AppCompatActivity {
     private boolean selectionMode = false;
     private RecyclerViewAdapter recyclerViewAdapter;
     private ViewPager viewPager;
-    private View highLightedView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -147,7 +142,7 @@ public class GalleryFullscreen extends AppCompatActivity {
 
             @Override
             public void onPageSelected(int position) {
-                layoutManager.scrollToPositionWithOffset((position / 4) * 4, 0);
+                if (position % 4 == 0) layoutManager.scrollToPositionWithOffset(position, 0);
             }
 
             @Override
@@ -222,7 +217,7 @@ public class GalleryFullscreen extends AppCompatActivity {
                 File file = new File(intent.getStringExtra(Constant.FILE_PATH));
                 Log.i("biky", "new image captured or video recorded, file path = " + file.getAbsolutePath());
                 if (file.getName().endsWith(Constant.IMAGE_FILE_EXTENSION) || file.getName().endsWith(Constant.VIDEO_FILE_EXTENSION)) {
-                    if(files.contains(file)){
+                    if (files.contains(file)) {
                         return;
                     }
                     files.add(0, file);

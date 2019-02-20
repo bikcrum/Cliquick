@@ -72,4 +72,5 @@ public class Constant {
     public static final long[] VIBRATE_PATTERN  = {0,20,100,20};;
     public static String DELETED_POSITIONS = "deleted_positions";
     public static int REQUEST_DELETED_POSITIONS = 5;
+    public static int START_UP_PERMISSIONS = 43;
 }

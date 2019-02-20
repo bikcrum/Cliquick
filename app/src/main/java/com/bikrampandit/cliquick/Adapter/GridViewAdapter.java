@@ -60,7 +60,7 @@ public class GridViewAdapter extends ArrayAdapter<File> {
         } else {
             holder.overLay.setVisibility(View.GONE);
         }
-        Glide.with(context).load(files.get(position)).into(holder.image);
+        Glide.with(context).load(files.get(position)).error(R.drawable.ic_error_placeholder_black).into(holder.image);
 
         return row;
     }

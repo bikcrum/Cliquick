@@ -125,9 +125,10 @@ public class ViewPagerAdapter extends PagerAdapter implements ViewPager.OnPageCh
 
             final SeekBar.OnSeekBarChangeListener seekBarChangeListener = new SeekBar.OnSeekBarChangeListener() {
                 @Override
-                public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                    if (b) {
-                        video.seekTo(i);
+                public void onProgressChanged(SeekBar seekBar, int position, boolean fromUser) {
+                    if (fromUser) {
+                        seektime.setText(Util.getSeekTime(video.getCurrentPosition()));
+                        video.seekTo(position);
                     }
                 }
 

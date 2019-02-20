@@ -16,6 +16,7 @@ import android.util.Log;
 import com.bikrampandit.cliquick.Utility.Constant;
 import com.bikrampandit.cliquick.R;
 import com.bikrampandit.cliquick.Utility.Util;
+import com.facebook.share.model.SharePhoto;
 
 import java.io.File;
 import java.io.IOException;
@@ -398,6 +399,9 @@ public class MyService extends Service implements RecognitionListener {
         sendBroadcast(new Intent().setAction(Constant.VOICE_MATCHED));
         //((Vibrator) getSystemService(VIBRATOR_SERVICE)).vibrate(200);
         Util.vibrate(this,100);
+
+        SharePhoto photo = new SharePhoto.Builder().build();
+
     }
 
 

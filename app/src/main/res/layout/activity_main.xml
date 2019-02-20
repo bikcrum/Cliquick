@@ -205,6 +205,7 @@
 
         </android.support.v7.widget.CardView>
 
+
         <android.support.v7.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -225,6 +226,180 @@
                     android:layout_marginBottom="10dp"
                     android:text="Then do the following"
                     android:textSize="19sp" />
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp">
+
+                    <com.rey.material.widget.Switch
+                        android:id="@+id/post_to_facebook_switch"
+                        style="@style/Material.Widget.Switch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_alignParentRight="true"
+                        android:layout_centerVertical="true"
+                        android:checked="true" />
+
+                    <TextView
+                        android:id="@+id/post_to_facebook_msg"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentTop="true"
+                        android:layout_toLeftOf="@id/post_to_facebook_switch"
+                        android:layout_toStartOf="@id/post_to_facebook_switch"
+                        android:text="Share my location in Facebook"
+                        android:textSize="16sp" />
+
+                </RelativeLayout>
+
+
+                <CheckBox
+                    android:id="@+id/share_photo_to_facebook"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:checked="true"
+                    android:text="Also instantly share photo from camera"
+                    android:textColor="#555555" />
+
+                <RadioGroup
+                    android:id="@+id/radio_group_facebook"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <RadioButton
+                        android:id="@+id/publicly_share"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="Publicly share in my timeline" />
+
+                    <RadioButton
+                        android:id="@+id/send_to_following_friends"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Send to following friends" />
+                </RadioGroup>
+
+                <android.support.v7.widget.AppCompatButton
+                    style="?attr/buttonBarButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/add_facebook_friend"
+                    android:text="ADD FACEBOOK FRIEND"
+                    android:textSize="14sp" />
+
+                <co.lujun.androidtagview.TagContainerLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="0dp"
+                    android:padding="10dp"
+                    android:id="@+id/facebook_friend_tag"
+                    app:container_enable_drag="false"
+                    app:horizontal_interval="10dp"
+                    app:tag_clickable="true"
+                    app:tag_enable_cross="true"
+                    app:tag_max_length="50"
+                    app:tag_theme="pure_cyan"
+                    app:vertical_interval="10dp" />
+
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginTop="10dp"
+                    android:background="#eeeeee" />
+
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp">
+
+                    <com.rey.material.widget.Switch
+                        android:id="@+id/post_to_whatsapp_switch"
+                        style="@style/Material.Widget.Switch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_alignParentRight="true"
+                        android:layout_centerVertical="true"
+                        android:checked="true" />
+
+                    <TextView
+                        android:id="@+id/post_to_whatsapp_msg"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentTop="true"
+                        android:layout_toLeftOf="@id/post_to_whatsapp_switch"
+                        android:layout_toStartOf="@id/post_to_whatsapp_switch"
+                        android:text="Share my current location in Whatsapp"
+                        android:textSize="16sp" />
+
+                </RelativeLayout>
+
+
+                <CheckBox
+                    android:id="@+id/share_photo_to_whatsapp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="5dp"
+                    android:checked="true"
+                    android:text="Also instantly share photo from camera"
+                    android:textColor="#555555" />
+
+
+                <RadioGroup
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <RadioButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="Broadcast to everyone" />
+
+                    <RadioButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Send to following contacts" />
+                </RadioGroup>
+
+
+                <android.support.v7.widget.AppCompatButton
+                    style="?attr/buttonBarButtonStyle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ADD WHATSAPP CONTACT"
+                    android:textSize="14sp" />
+
+                <co.lujun.androidtagview.TagContainerLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="0dp"
+                    android:padding="10dp"
+                    app:container_enable_drag="false"
+                    app:horizontal_interval="10dp"
+                    app:tag_clickable="true"
+                    app:tag_enable_cross="true"
+                    app:tag_max_length="50"
+                    app:tag_theme="pure_cyan"
+                    app:vertical_interval="10dp" />
+
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginBottom="10dp"
+                    android:layout_marginTop="10dp"
+                    android:background="#eeeeee" />
 
 
                 <RelativeLayout
@@ -249,10 +424,13 @@
                         android:layout_alignParentLeft="true"
                         android:layout_alignParentStart="true"
                         android:layout_alignParentTop="true"
-                        android:text="Send panic text message\nto the following contacts"
+                        android:layout_toLeftOf="@id/send_message_switch"
+                        android:layout_toStartOf="@id/send_message_switch"
+                        android:text="Send my location as text message\nto the following contacts"
                         android:textSize="16sp" />
 
                 </RelativeLayout>
+
 
                 <android.support.v7.widget.AppCompatButton
                     android:id="@+id/add_contact_for_text_msg"

@@ -20,6 +20,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.provider.ContactsContract;
 import android.speech.tts.TextToSpeech;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -43,6 +44,13 @@ import com.bikrampandit.cliquick.Service.MyService;
 import com.bikrampandit.cliquick.Utility.Constant;
 import com.bikrampandit.cliquick.Utility.Setting;
 import com.bikrampandit.cliquick.Utility.SettingReaderDbHelper;
+import com.facebook.AccessToken;
+import com.facebook.FacebookActivity;
+import com.facebook.FacebookOperationCanceledException;
+import com.facebook.FacebookSdk;
+import com.facebook.GraphRequest;
+import com.facebook.GraphResponse;
+import com.facebook.HttpMethod;
 import com.rey.material.widget.Switch;
 
 import java.util.ArrayList;
@@ -56,11 +64,13 @@ import static android.widget.Toast.makeText;
 public class MainActivity extends AppCompatActivity implements TextToSpeech.OnInitListener {
     private MyService myService;
     private boolean isBound;
-    private TagContainerLayout mTagContainerLayoutTextMessage;
-    private TagContainerLayout mTagContainerLayoutCall;
+    private TagContainerLayout tagFacebookFriends;
+    private TagContainerLayout tagWhatsAppContacts;
+    private TagContainerLayout tagTextMessage;
+    private TagContainerLayout tagCall;
 
     private SharedPreferences preferences;
-    SQLiteDatabase db;
+    private SQLiteDatabase db;
 
     private TextToSpeech tts;
     private Handler handler = new Handler();
@@ -91,6 +101,19 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
     private void handlePermissions() {
         //record audio permission
+        ArrayList<String> permissions = new ArrayList<>();
+        permissions.add(Manifest.permission.RECORD_AUDIO);
+        permissions.add(Manifest.permission.VIBRATE);
+        permissions.add(Manifest.permission.READ_CONTACTS);
+        permissions.add(Manifest.permission.RECORD_AUDIO);
+        permissions.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        permissions.add(Manifest.permission.CAMERA);
+        permissions.add(Manifest.permission.SYSTEM_ALERT_WINDOW);
+        permissions.add(Manifest.permission.INTERNET);
+        permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
+
+        ActivityCompat.requestPermissions(this, permissions.toArray(new String[permissions.size()]), Constant.START_UP_PERMISSIONS);
+/*
         if (preferences.getBoolean(Constant.VOICE_ENABLED, true)) {
 
             if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.RECORD_AUDIO) !=
@@ -99,10 +122,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                             PackageManager.PERMISSION_GRANTED) {
 
                 ((Switch) findViewById(R.id.voice_code_switch)).setCheckedImmediately(false);
-                preferences.edit().putBoolean(Constant.VOICE_ENABLED, false).apply();
 
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE}, Constant.PERMISSIONS_POCKET_SPHINX);
-            }
+            }adb shell input keyevent 25 &&
         }
 
         //vibrate permission
@@ -118,8 +140,8 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                         PackageManager.PERMISSION_GRANTED
                         || (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.SYSTEM_ALERT_WINDOW) !=
                         PackageManager.PERMISSION_GRANTED)) {
+
                     ((Switch) findViewById(R.id.vol_down_switch)).setCheckedImmediately(false);
-                    preferences.edit().putBoolean(Constant.VOLUME_DOWN_ENABLED, false).apply();
 
                     ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA, Manifest.permission.SYSTEM_ALERT_WINDOW}, Constant.PERMISSION_CAPTURE_IMAGE_IN_BACKGROUND);
                 }
@@ -131,17 +153,14 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
         }
         //camera permission
 
-        /*
-        //write external storage permission
-        permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE);
-        if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, Constant.PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
-        }*/
+       */
     }
 
     private void setupUI() {
-        mTagContainerLayoutTextMessage = (TagContainerLayout) findViewById(R.id.tag_container_add_contact_for_text_msg);
-        mTagContainerLayoutCall = (TagContainerLayout) findViewById(R.id.tag_container_add_contact_for_call);
+        tagFacebookFriends = (TagContainerLayout) findViewById(R.id.facebook_friend_tag);
+        tagTextMessage = (TagContainerLayout) findViewById(R.id.tag_container_add_contact_for_text_msg);
+        tagCall = (TagContainerLayout) findViewById(R.id.tag_container_add_contact_for_call);
+
         try {
             loadContacts();
         } catch (Exception e) {
@@ -150,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             db.execSQL(SettingReaderDbHelper.SQL_CREATE_ENTRIES);
         }
         //set listeners
-        mTagContainerLayoutCall.setOnTagClickListener(new TagView.OnTagClickListener() {
+        tagCall.setOnTagClickListener(new TagView.OnTagClickListener() {
             @Override
             public void onTagClick(int position, String text) {
 
@@ -168,14 +187,14 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                                 Constant.COLUMN_FLAG + " LIKE ?";
 
                 String[] selectionArgs = {
-                        mTagContainerLayoutCall.getTagText(position), Constant.CALL_ENABLED
+                        tagCall.getTagText(position), Constant.CALL_ENABLED
                 };
                 db.delete(Constant.TABLE_NAME, selection, selectionArgs);
-                mTagContainerLayoutCall.removeTag(position);
+                tagCall.removeTag(position);
             }
         });
 
-        mTagContainerLayoutTextMessage.setOnTagClickListener(new TagView.OnTagClickListener() {
+        tagTextMessage.setOnTagClickListener(new TagView.OnTagClickListener() {
             @Override
             public void onTagClick(int position, String text) {
             }
@@ -192,20 +211,38 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
 
                 String[] selectionArgs = {
-                        mTagContainerLayoutTextMessage.getTagText(position), Constant.TEXT_MESSAGING_ENABLED
+                        tagTextMessage.getTagText(position), Constant.TEXT_MESSAGING_ENABLED
                 };
                 db.delete(Constant.TABLE_NAME, selection, selectionArgs);
-                mTagContainerLayoutTextMessage.removeTag(position);
+                tagTextMessage.removeTag(position);
             }
+        });
+
+        findViewById(R.id.add_facebook_friend).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new GraphRequest(
+                        AccessToken.getCurrentAccessToken(),
+                        "/{user-id}/friendlists",
+                        null,
+                        HttpMethod.GET,
+                        new GraphRequest.Callback() {
+                            public void onCompleted(GraphResponse response) {
+            /* handle the result */
+                            }
+                        }
+                ).executeAsync();
+            }
+
         });
 
         findViewById(R.id.add_contact_for_text_msg).setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(View view) {/*
                 int permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_CONTACTS);
                 if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, Constant.PERMISSIONS_REQUEST_READ_CONTACTS_FOR_TEXT_MSG);
-                } else {
+                } else */{
                     addContactForTxtMsg();
                 }
             }
@@ -213,11 +250,11 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
         findViewById(R.id.add_contact_for_call).setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
+            public void onClick(View view) {/*
                 int permissionCheck = ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_CONTACTS);
                 if (permissionCheck != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_CONTACTS}, Constant.PERMISSIONS_REQUEST_READ_CONTACTS_FOR_CALL);
-                } else {
+                } else */{
                     addContactForCall();
                 }
             }
@@ -252,7 +289,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             @Override
             public void onCheckedChanged(Switch view, final boolean checked) {
                 long delay = 0;
-                if (checked) {
+                if (checked) {/*
                     if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.RECORD_AUDIO) !=
                             PackageManager.PERMISSION_GRANTED ||
                             ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
@@ -261,7 +298,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                         view.setCheckedImmediately(false);
                         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE}, Constant.PERMISSIONS_POCKET_SPHINX);
                         return;
-                    }
+                    }*/
                     if (myService != null) myService.startRecognizerSetup();
                     delay = 500;
                 } else {
@@ -353,7 +390,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.send_message_text).setEnabled(checked);
                 findViewById(R.id.add_contact_for_text_msg).setEnabled(checked);
-                mTagContainerLayoutTextMessage.setVisibility(checked ? View.VISIBLE : View.GONE);
+                tagTextMessage.setVisibility(checked ? View.VISIBLE : View.GONE);
 
                 preferences.edit().putBoolean(Constant.TEXT_MESSAGING_ENABLED, checked).apply();
             }
@@ -364,7 +401,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
             public void onCheckedChanged(Switch view, boolean checked) {
                 findViewById(R.id.call_switch_text).setEnabled(checked);
                 findViewById(R.id.add_contact_for_call).setEnabled(checked);
-                mTagContainerLayoutCall.setVisibility(checked ? View.VISIBLE : View.GONE);
+                tagCall.setVisibility(checked ? View.VISIBLE : View.GONE);
 
                 preferences.edit().putBoolean(Constant.CALL_ENABLED, checked).apply();
             }
@@ -372,18 +409,18 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
         ((Switch) findViewById(R.id.vol_down_switch)).setOnCheckedChangeListener(new Switch.OnCheckedChangeListener() {
             @Override
-            public void onCheckedChanged(Switch view, boolean checked) {
+            public void onCheckedChanged(Switch view, boolean checked) {/*
                 if (checked) {
                     if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.CAMERA) !=
                             PackageManager.PERMISSION_GRANTED
                             || (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.SYSTEM_ALERT_WINDOW) !=
                             PackageManager.PERMISSION_GRANTED)) {
-
+                        Log.i("biky", "inside vol down switch, permission denied");
                         view.setCheckedImmediately(false);
                         ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.CAMERA, Manifest.permission.SYSTEM_ALERT_WINDOW}, Constant.PERMISSION_CAPTURE_IMAGE_IN_BACKGROUND);
                         return;
                     }
-                }
+                }*/
                 findViewById(R.id.vol_down_text).setEnabled(checked);
                 findViewById(R.id.vol_down_text1).setEnabled(checked);
                 findViewById(R.id.vol_down_text2).setEnabled(checked);
@@ -568,14 +605,14 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
 
                 if (phoneNumbers.size() == 1) {
                     if (reqCode == Constant.PICK_CONTACT_FOR_TEXT_MSG) {
-                        mTagContainerLayoutTextMessage.addTag(name + " (" + phoneNumbers.get(0) + ")");
+                        tagTextMessage.addTag(name + " (" + phoneNumbers.get(0) + ")");
                         //save to db
                         ContentValues values = new ContentValues();
                         values.put(Constant.COLUMN_CONTACT, name + " (" + phoneNumbers.get(0) + ")");
                         values.put(Constant.COLUMN_FLAG, Constant.TEXT_MESSAGING_ENABLED);
                         db.insert(Constant.TABLE_NAME, null, values);
                     } else {
-                        mTagContainerLayoutCall.addTag(name + " (" + phoneNumbers.get(0) + ")");
+                        tagCall.addTag(name + " (" + phoneNumbers.get(0) + ")");
                         //save to db
                         ContentValues values = new ContentValues();
                         values.put(Constant.COLUMN_CONTACT, name + " (" + phoneNumbers.get(0) + ")");
@@ -608,9 +645,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         dialog.dismiss();
                         if (reqCode == Constant.PICK_CONTACT_FOR_TEXT_MSG) {
-                            mTagContainerLayoutTextMessage.addTag(contactName.getText() + " (" + phoneNumbers.get(position) + ")");
+                            tagTextMessage.addTag(contactName.getText() + " (" + phoneNumbers.get(position) + ")");
                         } else {
-                            mTagContainerLayoutCall.addTag(contactName.getText() + " (" + phoneNumbers.get(position) + ")");
+                            tagCall.addTag(contactName.getText() + " (" + phoneNumbers.get(position) + ")");
                         }
                     }
                 });
@@ -619,7 +656,13 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,@NonNull int[] grantResults) {
+        String results = "";
+        for(int i=0;i<grantResults.length;i++){
+            results += grantResults[i]+"\t";
+        }
+        Log.i("biky","on request permission result = " +results);
+        /*
         switch (requestCode) {
             case Constant.PERMISSIONS_POCKET_SPHINX:
                 if (grantResults.length > 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
@@ -645,7 +688,7 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                     ((Switch) findViewById(R.id.vol_down_switch)).setCheckedImmediately(true);
                 }
                 break;
-        }
+        }*/
 
     }
 
@@ -718,9 +761,9 @@ public class MainActivity extends AppCompatActivity implements TextToSpeech.OnIn
                     cursor.getColumnIndexOrThrow(Constant.COLUMN_FLAG));
 
             if (Constant.TEXT_MESSAGING_ENABLED.equals(flag)) {
-                mTagContainerLayoutTextMessage.addTag(contact);
+                tagTextMessage.addTag(contact);
             } else if (Constant.CALL_ENABLED.equals(flag)) {
-                mTagContainerLayoutCall.addTag(contact);
+                tagCall.addTag(contact);
             }
         }
         cursor.close();
